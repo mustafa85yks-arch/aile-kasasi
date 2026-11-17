@@ -1,0 +1,7 @@
+# Gerçek veri asla repoya girmez
+*.json
+*.csv
+*.ics
+*export*
+*yedek*
+.DS_Store
