@@ -1,27 +1,41 @@
-# Aile Kasası (demo)
+# Aile Kasası — Demo
 
-Aile üyelerinin banka/kurum hesaplarını ve şifre değişim tarihlerini tek yerde takip eden mobil öncelikli demo.
+Mobil öncelikli hesap ve şifre değişim takibi prototipi. Kurulum ve derleme gerektirmez.
 
-> ⚠️ **Bu bir demo, gerçek bir şifre kasası değil.** Kayıtlar yalnızca bellekte durur; sayfa yenilenince sıfırlanır.
-> Ana parola, şifreli kalıcı saklama, otomatik kilit, yedekleme ve arka planda hatırlatma yok.
-> **Bu repoya gerçek şifre, kullanıcı adı veya dışa aktarılmış veri girmez.**
+**Yalnızca örnek demo içindir. Gerçek şifre veya kişisel bilgi girmeyin.**
+Veriler yalnızca sayfanın belleğindedir; yenilemede örnek kayıtlar geri gelir.
+Kullanıcı hesabı, ana parola, kalıcı saklama, şifreli kasa ve sunucu yoktur.
+Şifre üretmek veya kaydı güncellemek banka/kurumdaki gerçek şifreyi değiştirmez.
 
-## Neler var
+## GitHub Pages ile yayın
 
-- Kişiye göre süzme (kişiler yatay kayar), arama, yaklaşan / geciken değişimler (gecikenler üstte)
-- Kayıt ekleme, düzenleme, silme; aile üyesi ekleme / ad değiştirme
-- Kuruma özel şifre kuralı: 6/8/12/16, özel uzunluk veya en az–en çok aralığı; rakam / harf+rakam / özel karakter
-- Kurala uygun şifre üretme ve elle girilen şifreyi doğrulama
-- Şifre yenileme üç adımda: **üret → bankada değiştir → banka onaylayınca kayda geçir**.
-  Üretilen şifre ayrı bir taslakta durur; kayıttaki şifre onay verilene kadar değişmez.
+1. ZIP'i açın. Bu klasörün içindeki dosyaları GitHub reponuzun köküne yükleyin. `index.html` kökte olmalı.
+2. Repo **Settings → Pages** bölümünde **Deploy from a branch** seçin.
+3. **main** dalını ve **/ (root)** klasörünü seçip kaydedin.
+4. GitHub'ın verdiği Pages adresini açın. Yükleme tamamlanması birkaç dakika sürebilir.
 
-Değişim süreleri ve şifre kuralları örnektir; bankaların doğrulanmış kuralları değildir.
+Örnek adres: `https://KULLANICI.github.io/REPO/`.
+Hesabınızın planına göre Pages için herkese açık repo gerekebilir.
 
-## Çalıştırma
+## İçerik
 
-`index.html` dosyasını tarayıcıda açmak yeterli; kurulum yok.
+- Kişi yönetimi, onaylı kişi ve hesap silme
+- Arama ve yer değiştirmeyen hesap kartları
+- Dokunarak kart seçimi
+- Şifre üretici: uzunluk, aralık, rakam/harf/işaret ayarları
+- Elle girilen şifrelerde üretici kuralı zorlaması yok
+- Şifre geçmişi, göster/gizle ve kopyalama
+- Kaydetmede parlaklık; kopyalamada sarı vurgu
+- Ana uygulama logosu mevcut; kurum logoları yok
 
-## Açık kararlar
+Kopyalama tarayıcı iznine bağlıdır; doğrudan açılan dosya veya gömülü önizlemede engellenebilir. HTTPS Pages adresinde deneyin.
 
-- Gerçek şifrelerin nerede saklanacağı (hazır parola yöneticisi mi, özel şifreli kasa mı)
-- Kalıcı veri, yedekleme ve hatırlatma yöntemi
+## Yerelde deneme
+
+`index.html` dosyasını tarayıcıda açın. Tüm görseller dosyanın içindedir;
+yazı tipleri cihazdan kullanılır. Haricî font veya logo servisi çağrılmaz.
+
+## Gerçek kullanıma geçiş
+
+Bu demo güvenli bir şifre yöneticisi değildir. Gerçek kullanım için veri saklama,
+kimlik doğrulama, şifreleme ve yedekleme mimarisi ayrıca hazırlanmalıdır.
