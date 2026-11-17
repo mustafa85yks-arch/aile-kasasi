@@ -64,27 +64,25 @@ input,select{min-width:0;min-height:48px;padding:12px;border:1px solid #dde3d8;b
 
 /* Kartlar */
 .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
-.card{grid-column:1/-1;display:flex;flex-direction:column;min-width:0;padding:24px;border:1px solid var(--line);border-top:2px solid #365d42;border-radius:4px;background:#fff}
-.card:hover{border-color:#8ea586}
-.card-head{display:grid;grid-template-columns:80px minmax(0,1fr) 44px;gap:8px;align-items:center;min-height:48px}
-.institution{display:grid;place-items:center;width:80px;height:48px;padding:8px;background:#fff;font:700 24px Manrope,Arial,sans-serif}
-.bank-logo{width:100%;height:100%;max-height:32px;object-fit:contain}
-.bank-logo.square{width:32px}
+.card{grid-column:1/-1;display:flex;flex-direction:column;min-width:0;padding:24px;border:1px solid #9fb59a;border-radius:4px;background:#fff}
+.card:hover{border-color:#6f8f69}
+.card-head{display:grid;grid-template-columns:80px minmax(0,1fr) 44px;gap:8px;align-items:center;min-height:48px;margin-bottom:24px}
+.institution{display:grid;place-items:center;width:80px;height:48px;padding:4px 8px;background:#fff;font:700 24px Manrope,Arial,sans-serif}
+.bank-logo{width:100%;height:100%;max-height:40px;object-fit:contain}
+.bank-logo.square{width:40px}
+.pass-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:8px}
+.pass-head .label{margin:0}
+.due{font-size:14px;line-height:16px;font-weight:700;letter-spacing:.4px;white-space:nowrap}
+.due.ok{color:#2f7a3e} .due.soon{color:#b3852b} .due.late{color:#ba685b}
+.card .password{margin-bottom:16px}
 .card h3{margin:0;font-size:16px;line-height:24px;font-weight:700;letter-spacing:-.3px;overflow-wrap:anywhere}
 .owner{font-size:12px;line-height:16px;color:#6a7b68}
 .icon{display:inline-grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:2px;background:none;color:#4f6a58}
 .icon:hover{background:#eef2ea}
 .icon svg{width:20px;height:20px}
-.badge{align-self:flex-start;margin:16px 0;padding:8px;border-radius:2px;font-size:12px;line-height:16px;font-weight:600}
-.ok{background:#edf4eb;color:#5f8661} .soon{background:#fff1d7;color:#b3852b} .late{background:#fbe9e5;color:#ba685b}
 .label{margin-bottom:8px;font-size:12px;line-height:16px;letter-spacing:.5px;color:#6c7c68}
-.username{margin-bottom:16px;font-size:14px;line-height:24px;overflow-wrap:anywhere}
 .password{display:flex;align-items:center;height:56px;padding:4px 8px;border:1px solid #edf0e8;border-radius:2px;background:#f4f6ef}
 .password code{flex:1;min-width:0;overflow:hidden;font-size:14px;line-height:24px;letter-spacing:1px}
-.dates{display:flex;justify-content:space-between;gap:16px;margin:24px 0;font-size:12px;line-height:16px;color:#6c7c68}
-.dates>div{min-width:0}
-.dates>div+div{text-align:right}
-.dates b{display:block;margin-top:8px;font-weight:500;color:#405d45}
 .renew{width:100%;min-height:48px;padding:8px;border:1px solid #dde6d8;border-radius:2px;background:#fff;color:#58765e;font-size:14px;line-height:24px}
 .card>.renew{margin-top:auto}
 .card>.renew.pending{border-color:#d9b46b;background:#fff8ea;color:#8a6420;font-weight:600}
@@ -128,7 +126,6 @@ dialog .renew{background:#fff;color:#365d42;border-color:var(--field)}
 .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
 .actions .renew{width:auto}
 #deleteBtn{margin-right:auto;color:var(--late);border-color:#e3c3bb}
-#bankHint{font-size:11px;line-height:16px;color:#52654d}
 
 .rules{display:grid;gap:16px;min-width:0;margin:0;padding:16px;border:1px solid var(--field);border-radius:4px;background:#edf1e7}
 .rules legend{padding:0 8px;font-size:14px;font-weight:700}
@@ -189,7 +186,7 @@ dialog .renew{background:#fff;color:#365d42;border-color:var(--field)}
     <h1>Ailenin hesapları.</h1>
     <p>Şifreler ve değişim tarihleri, elinin altında.</p>
   </div>
-  <div class="demo"><b>Demo alanındasın.</b> Gerçek şifre girme. Örnek kayıtlar, yenilemede sıfırlanır.</div>
+  <div class="demo"><b>Demo alanındasın.</b> Gerçek şifre girme. Kişiler ve kayıtlar, sayfa yenilenince silinir.</div>
 
   <div class="stats">
     <div class="stat"><span>Toplam kayıt</span><strong id="total"></strong><small id="totalNote"></small></div>
@@ -198,7 +195,7 @@ dialog .renew{background:#fff;color:#365d42;border-color:var(--field)}
   </div>
 
   <div class="tools">
-    <input class="search" id="search" type="search" placeholder="Kurum veya kullanıcı ara…" aria-label="Kayıt ara">
+    <input class="search" id="search" type="search" placeholder="Kurum veya kişi ara…" aria-label="Kayıt ara">
     <div class="filters" role="group" aria-label="Duruma göre süz">
       <button type="button" data-filter="all">Tümü</button>
       <button type="button" data-filter="soon">Yaklaşan</button>
@@ -212,17 +209,23 @@ dialog .renew{background:#fff;color:#365d42;border-color:var(--field)}
 
 <dialog id="modal" aria-labelledby="formTitle">
   <h2 id="formTitle">Yeni kayıt</h2>
-  <p>Kurum adları gerçektir; hesap bilgileri ve değişim süreleri örnektir.</p>
   <form id="form">
     <label>Kurum adı
       <input name="name" list="bankOptions" required maxlength="50" placeholder="Kurum seç veya adını yaz">
       <datalist id="bankOptions"><option value="Akbank"><option value="İş Bankası"><option value="Garanti BBVA"></datalist>
-      <span id="bankHint">Listeden banka seçtiğinde logosu otomatik eklenir. Diğer kurumlar için baş harf gösterilir.</span>
     </label>
     <label>Kime ait?<select name="person"></select></label>
-    <label>Kullanıcı adı<input name="user" required maxlength="80" placeholder="ornek.kullanici"></label>
+    <label><span id="passLabel">Şifre</span>
+      <div class="generate-row">
+        <input name="pass" type="text" required maxlength="64" autocomplete="off" spellcheck="false">
+        <button type="button" class="renew" id="generateBtn">Üret</button>
+        <button type="button" class="renew" id="generatedCopy" aria-label="Şifreyi kopyala">Kopyala</button>
+      </div>
+    </label>
+    <span id="copyStatus" class="sr-only" role="status" aria-live="polite"></span>
+    <div id="ruleFeedback" role="status" aria-live="polite"></div>
 
-    <fieldset class="rules">
+    <fieldset class="rules" id="rulesBox" hidden>
       <legend>Kurumun şifre kuralları</legend>
       <label>Karakter türü
         <select name="ruleType">
@@ -268,17 +271,6 @@ dialog .renew{background:#fff;color:#365d42;border-color:var(--field)}
       <small>Kuralları kurumun istediği biçimde belirle. Demoda yalnızca bu oturumda hatırlanır.</small>
     </fieldset>
 
-    <label>Örnek şifre
-      <div class="generate-row">
-        <input name="pass" type="text" required maxlength="64">
-        <button type="button" class="renew" id="generateBtn">Üret</button>
-        <button type="button" class="renew" id="generatedCopy" aria-label="Şifreyi kopyala">Kopyala</button>
-      </div>
-    </label>
-    <span id="copyStatus" class="sr-only" role="status" aria-live="polite"></span>
-    <div id="ruleFeedback" role="status" aria-live="polite"></div>
-
-    <label>Son değişiklik<input name="last" type="date" required></label>
     <label>Değişim sıklığı
       <select name="months">
         <option value="3">3 ayda bir</option>
@@ -378,16 +370,8 @@ function addMonths(date,n){const d=new Date(date.getFullYear(),date.getMonth()+n
 const fmt=d=>d.toLocaleDateString('tr-TR',{day:'numeric',month:'short',year:'numeric'});
 
 /* ---------- Veri (yalnızca bellek) ---------- */
-let people=['Mustafa','Annem','Babam'];
-let records=[
-  {id:1,name:'Akbank',person:'Mustafa',user:'mustafa.demo',pass:'Ornek!2026-A',last:past(190),months:6,ink:'#54769a',symbol:'Ö'},
-  {id:2,name:'İş Bankası',person:'Annem',user:'annem.demo',pass:'Demo!Aile-42',last:past(165),months:6,ink:'#b97870',symbol:'G'},
-  {id:3,name:'e-Devlet (örnek)',person:'Babam',user:'baba.demo',pass:'Ornek!Baba-9',last:past(35),months:0,ink:'#a96b65',symbol:'e'},
-  {id:4,name:'E-posta',person:'Mustafa',user:'mustafa@example.com',pass:'Demo!Posta-7',last:past(50),months:6,ink:'#8879a6',symbol:'@'},
-  {id:5,name:'Sigorta Portalı',person:'Babam',user:'baba.sigorta',pass:'Ornek!Sig-26',last:past(75),months:3,ink:'#ac915c',symbol:'S'},
-  {id:6,name:'İnternet Aboneliği',person:'Annem',user:'ev.internet',pass:'Demo!Ev-123',last:past(80),months:12,ink:'#63896a',symbol:'↗'},
-  {id:7,name:'Garanti BBVA',person:'Mustafa',user:'mustafa.ornek',pass:'Demo!Garanti-26',last:past(140),months:6,ink:'#63896a',symbol:'G'}
-];
+let people=[];
+let records=[];
 let person='Tümü',filter='all',editing=null;
 const visible=new Set();
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -415,15 +399,16 @@ function render(){
 
   const q=$('search').value.toLocaleLowerCase('tr');
   const rows=scoped
-    .filter(r=>(filter==='all'||status(r)===filter)&&(r.name+' '+r.user).toLocaleLowerCase('tr').includes(q))
+    .filter(r=>(filter==='all'||status(r)===filter)&&(r.name+' '+r.person).toLocaleLowerCase('tr').includes(q))
     .sort(byUrgency);
 
-  $('cards').innerHTML=rows.length?rows.map(card).join(''):'<div class="empty">Bu filtreye uygun kayıt bulunamadı.</div>';
+  const emptyText=!people.length?'Henüz kişi yok. Önce “Kişileri yönet” ile bir kişi ekle.':!records.length?'Henüz kayıt yok. “＋ Yeni kayıt” ile ilk hesabı ekle.':'Bu filtreye uygun kayıt bulunamadı.';
+  $('cards').innerHTML=rows.length?rows.map(card).join(''):`<div class="empty">${emptyText}</div>`;
 }
 
 function card(r){
   const s=status(r),d=days(r),shown=visible.has(r.id),n=esc(r.name),logo=bankLogo(r.name);
-  const label=d===Infinity?'Düzenli değişim yok':d<0?`${-d} gün gecikti`:d===0?'Bugün değiştir':d<=30?`${d} gün sonra değiştir`:'Güncel';
+  const label=d===Infinity?'Süresiz':d<0?`${-d} gün gecikti`:d===0?'Bugün değiştir':`Değişime ${d} gün`;
   const mark=logo?`<img class="bank-logo${r.name==='Akbank'?' square':''}" src="${logo}" alt="${n} logosu">`:esc(r.symbol);
   return `<article class="card">
     <div class="card-head">
@@ -431,16 +416,12 @@ function card(r){
       <div><h3>${n}</h3><div class="owner">${esc(r.person)} hesabı</div></div>
       <button type="button" class="icon" data-action="edit" data-id="${r.id}" aria-label="${n} kaydını düzenle" title="Kaydı düzenle">${ICON.edit}</button>
     </div>
-    <div class="badge ${s}">● &nbsp;${label}</div>
-    <div class="label">KULLANICI ADI</div>
-    <div class="username">${esc(r.user)}</div>
-    <div class="label">ŞİFRE</div>
+    <div class="pass-head"><span class="label">ŞİFRE</span><span class="due ${s}" title="${due(r)?'Sonraki değişiklik: '+fmt(due(r)):'Düzenli değişim yok'}">${label}</span></div>
     <div class="password">
       <code>${shown?esc(r.pass):'<span aria-hidden="true">••••••••••••</span><span class="sr-only">Gizli</span>'}</code>
       <button type="button" class="icon" data-action="toggle" data-id="${r.id}" aria-pressed="${shown}" aria-label="${n} şifresini ${shown?'gizle':'göster'}" title="${shown?'Gizle':'Göster'}">${shown?ICON.eyeOff:ICON.eye}</button>
       <button type="button" class="icon" data-action="copy" data-id="${r.id}" aria-label="${n} şifresini kopyala" title="Kopyala">${ICON.copy}</button>
     </div>
-    <div class="dates"><div>Son değişiklik<b>${fmt(parseDay(r.last))}</b></div><div>Sonraki değişiklik<b>${due(r)?fmt(due(r)):'Süresiz'}</b></div></div>
     ${r.draft?`<div class="draft-note">Yeni şifre taslakta bekliyor. Kayıttaki şifre, banka onayı girilene kadar değişmez.</div>`:''}
     <button type="button" class="renew${r.draft?' pending':''}" data-action="renew" data-id="${r.id}">${r.draft?'↻ &nbsp; Taslağı tamamla':'↻ &nbsp; Şifreyi güncelle'}</button>
   </article>`;
@@ -476,16 +457,18 @@ $('manageBtn').addEventListener('click',()=>openPeople());
 const modal=$('modal'),form=$('form');
 
 function openForm(id){
+  if(!people.length){openPeople();peopleMsg('Kayıt eklemek için önce bir kişi ekle.',true);return}
   resetGeneratedCopy();
   editing=id||null;
   form.reset();
   form.elements.person.innerHTML=people.map(p=>`<option>${esc(p)}</option>`).join('');
   if(person!=='Tümü')form.elements.person.value=person;
-  form.elements.last.value=iso(now);
   $('formTitle').textContent=id?'Kaydı düzenle':'Yeni kayıt';
+  $('passLabel').textContent=id?'Yeni şifre':'Şifre';
+  $('rulesBox').hidden=true;
   $('deleteBtn').hidden=!id;
   const r=id?records.find(x=>x.id===id):null;
-  if(r)['name','person','user','pass','last','months'].forEach(k=>form.elements[k].value=r[k]);
+  if(r)['name','person','pass','months'].forEach(k=>form.elements[k].value=r[k]);
   loadRules(r?r.rules:null);
   modal.showModal();
 }
@@ -568,8 +551,11 @@ function createPassword(r){
   for(let i=result.length-1;i>0;i--){const j=randomIndex(i+1);[result[i],result[j]]=[result[j],result[i]]}
   return result.join('');
 }
+/* Kural menüsü ilk "Üret"te açılır; kural seçiliyse aynı basışta şifre de üretilir. */
 function generate(){
   resetGeneratedCopy();
+  $('rulesBox').hidden=false;
+  if(readRules().type==='unset'){showFeedback("Kurumun karakter türünü seç, sonra tekrar Üret'e bas.",true);form.elements.ruleType.focus();return}
   try{form.elements.pass.value=createPassword(readRules());showFeedback('Şifre seçtiğin kurallara göre üretildi.',true)}
   catch(e){showFeedback(e.message)}
 }
@@ -601,11 +587,15 @@ modal.addEventListener('close',resetGeneratedCopy);
 form.onsubmit=e=>{
   e.preventDefault();
   const rules=readRules(),err=checkPassword(form.elements.pass.value,rules);
-  if(err){showFeedback(err);form.elements.pass.focus();return}
-  const data={};['name','person','user','pass','last','months'].forEach(k=>data[k]=form.elements[k].value);
+  if(err){$('rulesBox').hidden=false;showFeedback(err);form.elements.pass.focus();return}
+  const data={};['name','person','pass','months'].forEach(k=>data[k]=form.elements[k].value);
   data.months=Number(data.months);data.rules=rules;
-  if(editing){Object.assign(records.find(r=>r.id===editing),data);visible.delete(editing)}
-  else records.push({...data,id:Date.now(),ink:'#63896a',symbol:data.name.trim()[0].toLocaleUpperCase('tr')});
+  if(editing){
+    const r=records.find(x=>x.id===editing);
+    if(data.pass!==r.pass){data.last=iso(now);delete r.draft}   // şifre değiştiyse değişim tarihi bugün
+    Object.assign(r,data);visible.delete(editing);
+  }
+  else records.push({...data,last:iso(now),id:Date.now(),ink:'#63896a',symbol:data.name.trim()[0].toLocaleUpperCase('tr')});
   modal.close();render();
   toast(`${editing?'Kayıt güncellendi':'Kayıt eklendi'} · Yalnızca bu demo oturumunda`);
 };
@@ -705,14 +695,14 @@ function nameError(name,except=-1){
 }
 function renderPeople(){
   $('peopleList').innerHTML=people.map((p,i)=>{
-    const n=records.filter(r=>r.person===p).length,locked=n>0||people.length===1;
+    const n=records.filter(r=>r.person===p).length,locked=n>0;
     return `<div class="person-row">
       <input value="${esc(p)}" maxlength="20" data-rename="${i}" aria-label="${esc(p)} adını değiştir">
       <span class="count">${n} kayıt</span>
       <button type="button" class="renew" data-remove="${i}" ${locked?'disabled':''} aria-label="${esc(p)} kişisini kaldır">Kaldır</button>
     </div>`}).join('');
 }
-function openPeople(){peopleForm.reset();peopleMsg('');renderPeople();peopleModal.showModal()}
+function openPeople(){peopleForm.reset();peopleMsg('');renderPeople();peopleModal.showModal();peopleForm.elements.newPerson.focus()}
 $('peopleList').addEventListener('change',e=>{
   const i=Number(e.target.dataset.rename);if(Number.isNaN(i))return;
   const old=people[i],name=e.target.value.trim(),err=nameError(name,i);
