@@ -1,0 +1,22 @@
+const {webcrypto}=require('node:crypto');globalThis.crypto=webcrypto;
+require('../vault-core.js');const assert=require('node:assert/strict');
+(async()=>{
+ const state={people:['Test'],records:[{id:1,name:'Yerel hesap',person:'Test',pass:'Ornek!456',last:'2026-11-17',months:6,history:[{pass:'Eski!123',since:'2026-01-01',replacedAt:'2026-11-17T12:00:00Z'}]}]};
+ const pass='Guclu Test Parolasi 2026!';const v=await VaultCore.create(pass,state);
+ assert.equal(v.codes.length,3);assert.equal(new Set(v.codes).size,3);
+ const json=JSON.stringify(v.envelope);for(const secret of ['Ornek!456','Eski!123',pass,...v.codes])assert(!json.includes(secret));
+ assert.deepEqual((await VaultCore.unlock(v.envelope,pass)).state,state);
+ await assert.rejects(VaultCore.unlock(v.envelope,'wrong'));
+ for(const code of v.codes)assert.deepEqual(await VaultCore.recover(v.envelope,code),state);
+ await assert.rejects(VaultCore.recover(v.envelope,'A'.repeat(64)));
+ const updated=structuredClone(state);updated.records[0].pass='Yeni!789';
+ const e=await VaultCore.update(v.envelope,v.key,updated);
+ assert.notEqual(e.payload.iv,v.envelope.payload.iv);assert.deepEqual((await VaultCore.unlock(e,pass)).state,updated);
+ const broken=structuredClone(e);const bytes=Buffer.from(broken.payload.cipher,'base64');bytes[0]^=1;broken.payload.cipher=bytes.toString('base64');await assert.rejects(VaultCore.unlock(broken,pass));
+ const recovered=await VaultCore.recover(e,v.codes[1]);const rotated=await VaultCore.create('Yeni Ana Parola 2026!',recovered);
+ await assert.rejects(VaultCore.unlock(rotated.envelope,pass));for(const old of v.codes)await assert.rejects(VaultCore.recover(rotated.envelope,old));
+ for(const code of rotated.codes)assert.deepEqual(await VaultCore.recover(rotated.envelope,code),updated);
+ const imported=JSON.parse(JSON.stringify(rotated.envelope));assert.deepEqual((await VaultCore.unlock(imported,'Yeni Ana Parola 2026!')).state,updated);
+ assert.throws(()=>VaultCore.validate({...imported,iterations:1}));assert.throws(()=>VaultCore.checkState({people:[],records:state.records}));
+ console.log('PASS: encryption, all 3 independent recovery keys, wrong credentials, ciphertext integrity, unique IVs, encrypted backup round-trip, full key rotation and schema validation.');
+})().catch(e=>{console.error(e);process.exitCode=1});
