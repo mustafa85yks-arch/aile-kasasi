@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aile Kasası</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;600;700;800&display=swap');
+
+/* Aile Kasası — mobil öncelikli tek stil katmanı.
+   Grid: 4 kolon, 8 px taban birim, 16/24 px kenar, en az 44 px dokunma hedefi.
+   Sütun 520 px'e sabit; geniş ekranda ortalanır. */
+
+:root{
+  color-scheme:light;
+  --ink:#17392f; --muted:#68796f; --green:#23664c; --line:#d8dfd5;
+  --bg:#f5f6f0; --page:#e8ece4; --field:#a7b5a0; --late:#a34532;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--page);color:var(--ink);font:14px/24px 'DM Sans',Arial,sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer;touch-action:manipulation}
+button:disabled{cursor:not-allowed;opacity:.45}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #296745;outline-offset:3px}
+p{margin:0;color:var(--muted)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+
+/* Üst: marka + aile seçimi */
+header{max-width:520px;margin:0 auto;padding:24px 24px 16px;background:var(--bg);border-bottom:1px solid var(--line)}
+.brand{font:800 22px/32px Manrope,Arial,sans-serif;letter-spacing:-.8px;white-space:nowrap}
+.brand-dot{color:#a5b39f}
+.logo{display:inline-grid;place-items:center;width:32px;height:32px;margin-right:8px;border-radius:2px;background:var(--green);color:#fff;font-size:24px;vertical-align:middle}
+.head-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.manage{min-height:44px;padding:8px 12px;border:1px solid var(--field);border-radius:2px;background:transparent;color:var(--green);font-size:12px;line-height:24px;font-weight:600;white-space:nowrap}
+/* Kişiler: 4 ve altı kişi 4 kolona oturur; fazlası yatay kayar, 5. kişi yarım görünüp kaydırılabildiğini belli eder. */
+#people{display:flex;gap:8px;margin:24px -24px 0;padding:0 24px;overflow-x:auto;scroll-snap-type:x proximity;scroll-padding:0 24px;scrollbar-width:none}
+#people::-webkit-scrollbar{display:none}
+.person{flex:0 0 calc((100% - 24px)/4);min-width:0;min-height:48px;padding:8px 4px;border:1px solid transparent;border-radius:2px;background:#eaf0e3;color:#607269;font-size:12px;line-height:24px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;scroll-snap-align:start}
+#people.many .person{flex-basis:calc((100% - 32px)/4.5)}
+.person[aria-pressed=true]{background:#fff;border-color:#8ea586;color:var(--ink);font-weight:700}
+
+/* Ana sütun */
+main{max-width:520px;min-height:calc(100dvh - 145px);margin:0 auto;padding:24px 24px 112px;background:var(--bg)}
+.top{padding-bottom:24px;border-bottom:2px solid var(--ink)}
+.eyebrow{font-size:11px;line-height:16px;font-weight:700;letter-spacing:1.5px;color:#5c7162}
+h1{margin:8px 0;font:800 32px/40px Manrope,Arial,sans-serif;letter-spacing:-1.25px}
+.top p{max-width:36ch}
+.demo{margin:16px 0 24px;padding:12px;border-left:3px solid #b18b42;background:#eeebdd;color:#71613e;font-size:12px;line-height:20px}
+
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.stat{padding:16px 0;border-top:1px solid var(--line)}
+.stat span{display:block;min-height:32px;font-size:12px;line-height:16px;color:#566b5b}
+.stat strong{display:block;margin:0 0 8px;font:800 32px/40px Manrope,Arial,sans-serif;letter-spacing:-1px}
+.stat small{display:block;font-size:11px;line-height:16px;color:#73816f}
+#soon{color:#b88b37} #late{color:#bd7568}
+
+.tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:16px 0 24px}
+input,select{min-width:0;min-height:48px;padding:12px;border:1px solid #dde3d8;border-radius:2px;background:#fff;color:var(--ink);line-height:24px}
+.search{grid-column:1/-1;width:100%;height:48px;border-radius:4px;font-size:16px}
+.filters{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:1px solid var(--line)}
+.filters button{min-height:48px;padding:8px 4px;border:0;border-bottom:2px solid transparent;background:transparent;color:#64765f;font-size:12px;line-height:24px;white-space:nowrap}
+.filters button[aria-pressed=true]{border-bottom-color:var(--green);color:var(--green);font-weight:700}
+
+/* Kartlar */
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.card{grid-column:1/-1;display:flex;flex-direction:column;min-width:0;padding:24px;border:1px solid var(--line);border-top:2px solid #365d42;border-radius:4px;background:#fff}
+.card:hover{border-color:#8ea586}
+.card-head{display:grid;grid-template-columns:80px minmax(0,1fr) 44px;gap:8px;align-items:center;min-height:48px}
+.institution{display:grid;place-items:center;width:80px;height:48px;padding:8px;background:#fff;font:700 24px Manrope,Arial,sans-serif}
+.bank-logo{width:100%;height:100%;max-height:32px;object-fit:contain}
+.bank-logo.square{width:32px}
+.card h3{margin:0;font-size:16px;line-height:24px;font-weight:700;letter-spacing:-.3px;overflow-wrap:anywhere}
+.owner{font-size:12px;line-height:16px;color:#6a7b68}
+.icon{display:inline-grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:2px;background:none;color:#4f6a58}
+.icon:hover{background:#eef2ea}
+.icon svg{width:20px;height:20px}
+.badge{align-self:flex-start;margin:16px 0;padding:8px;border-radius:2px;font-size:12px;line-height:16px;font-weight:600}
+.ok{background:#edf4eb;color:#5f8661} .soon{background:#fff1d7;color:#b3852b} .late{background:#fbe9e5;color:#ba685b}
+.label{margin-bottom:8px;font-size:12px;line-height:16px;letter-spacing:.5px;color:#6c7c68}
+.username{margin-bottom:16px;font-size:14px;line-height:24px;overflow-wrap:anywhere}
+.password{display:flex;align-items:center;height:56px;padding:4px 8px;border:1px solid #edf0e8;border-radius:2px;background:#f4f6ef}
+.password code{flex:1;min-width:0;overflow:hidden;font-size:14px;line-height:24px;letter-spacing:1px}
+.dates{display:flex;justify-content:space-between;gap:16px;margin:24px 0;font-size:12px;line-height:16px;color:#6c7c68}
+.dates>div{min-width:0}
+.dates>div+div{text-align:right}
+.dates b{display:block;margin-top:8px;font-weight:500;color:#405d45}
+.renew{width:100%;min-height:48px;padding:8px;border:1px solid #dde6d8;border-radius:2px;background:#fff;color:#58765e;font-size:14px;line-height:24px}
+.card>.renew{margin-top:auto}
+.card>.renew.pending{border-color:#d9b46b;background:#fff8ea;color:#8a6420;font-weight:600}
+.draft-note{margin:0 0 16px;padding:8px 12px;border-left:3px solid #d9b46b;background:#fff8ea;color:#7a5a1d;font-size:12px;line-height:20px}
+
+/* Şifre yenileme adımları */
+.steps{display:grid;gap:16px;margin:0;padding:0;list-style:none;counter-reset:step}
+.step{display:grid;gap:8px;padding:16px;border:1px solid var(--field);border-radius:4px;background:#fff;counter-increment:step}
+.step h3{margin:0;font-size:14px;line-height:24px}
+.step h3::before{content:counter(step) ". ";color:var(--green)}
+.step small{font-size:12px;line-height:20px;color:#52654d}
+.step[aria-disabled=true]{opacity:.55}
+.current-pass{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.current-pass code{min-width:0;overflow:hidden;padding:12px;border:1px solid #edf0e8;border-radius:2px;background:#f4f6ef;font-size:14px;line-height:24px;letter-spacing:1px;white-space:nowrap;text-overflow:ellipsis}
+.confirm-check{display:flex!important;align-items:flex-start;gap:8px;min-height:44px;font-size:13px!important;line-height:20px!important}
+.confirm-check input{width:20px!important;height:20px;min-height:20px!important;margin:0;flex:0 0 auto;accent-color:var(--green)}
+#renewFeedback{font-size:12px;line-height:20px}
+#renewFeedback:empty{display:none}
+.renew-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.renew-actions .primary{grid-column:1/-1;order:-1}
+.empty{grid-column:1/-1;padding:48px 16px;text-align:center;color:#829085}
+.footer{margin-top:32px;padding-top:24px;border-top:1px solid var(--line);text-align:center;font-size:12px;line-height:20px;color:#6f7c68}
+
+.primary{min-height:48px;padding:12px 24px;border:0;border-radius:4px;background:var(--green);color:#fff;font-weight:700;line-height:24px;white-space:nowrap}
+
+/* Alt sabit çubuk + bildirim */
+.mobile-actions{position:fixed;bottom:0;left:50%;z-index:5;display:flex;align-items:center;gap:16px;width:100%;max-width:520px;padding:12px 24px max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);background:#f5f6f0f5;border-top:1px solid var(--line);backdrop-filter:blur(12px)}
+.mobile-actions span{flex:1;font-size:12px;line-height:16px;color:#61735e}
+#toast{position:fixed;bottom:96px;left:50%;z-index:10;display:none;width:calc(100% - 48px);max-width:440px;padding:16px 24px;transform:translateX(-50%);border-radius:4px;background:var(--ink);color:#fff;text-align:center;line-height:24px}
+
+/* Pencereler */
+dialog{width:calc(100% - 32px);max-width:472px;max-height:85dvh;overflow-y:auto;padding:24px;border:1px solid #dde6d8;border-radius:8px;background:var(--bg);color:var(--ink)}
+dialog::backdrop{background:#17392f66;backdrop-filter:blur(3px)}
+dialog h2{margin:0 0 8px;font-size:24px;line-height:32px}
+dialog p{margin-bottom:24px;font-size:12px;color:#52654d}
+form{display:grid;gap:16px}
+form label{display:grid;gap:8px;font-size:12px;line-height:16px}
+dialog input,dialog select{width:100%;border-color:var(--field);font-size:16px}
+dialog input::placeholder{color:var(--muted);opacity:1}
+dialog .renew{background:#fff;color:#365d42;border-color:var(--field)}
+.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+.actions .renew{width:auto}
+#deleteBtn{margin-right:auto;color:var(--late);border-color:#e3c3bb}
+#bankHint{font-size:11px;line-height:16px;color:#52654d}
+
+.rules{display:grid;gap:16px;min-width:0;margin:0;padding:16px;border:1px solid var(--field);border-radius:4px;background:#edf1e7}
+.rules legend{padding:0 8px;font-size:14px;font-weight:700}
+.rules small{font-size:12px;line-height:20px;color:#52654d}
+#ruleDetails{display:grid;gap:16px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ruleChecks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.ruleChecks label{display:flex;align-items:center;gap:8px;min-height:44px;font-size:12px}
+.ruleChecks input[type=checkbox]{width:20px;height:20px;min-height:20px;margin:0;accent-color:var(--green)}
+#ruleFeedback,#peopleFeedback{font-size:12px;line-height:20px}
+#ruleFeedback:empty,#peopleFeedback:empty{display:none}
+
+.generate-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center}
+.generate-row .renew{width:auto;padding:8px 12px;white-space:nowrap;transition:background .18s,color .18s,border-color .18s}
+.generate-row .copied{background:var(--green);color:#fff;border-color:var(--green);animation:copy-confirm .4s ease-out}
+@keyframes copy-confirm{0%{transform:scale(.94)}55%{transform:scale(1.06);box-shadow:0 0 0 6px #23664c18}100%{transform:scale(1);box-shadow:0 0 0 0 #23664c00}}
+
+.person-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center}
+.person-row .count{font-size:12px;color:var(--muted);white-space:nowrap}
+.person-row .renew{width:auto;padding:8px 12px}
+#peopleList{display:grid;gap:8px;margin-bottom:16px}
+.add-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.add-row .renew{width:auto;padding:8px 16px}
+
+@media(max-width:380px){
+  header{padding:16px 16px 12px}
+  main{padding:24px 16px 112px}
+  .card{padding:16px}
+  .card-head{grid-template-columns:64px minmax(0,1fr) 44px}
+  .institution{width:64px}
+  .stats{gap:8px}
+  .stat span{font-size:11px}
+  .mobile-actions{padding-left:16px;padding-right:16px}
+  .mobile-actions .primary{padding-left:16px;padding-right:16px}
+  .generate-row{grid-template-columns:1fr 1fr}
+  .generate-row input{grid-column:1/-1}
+  .generate-row .renew{width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+  .generate-row .copied{animation:none}
+  .generate-row .renew{transition:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-row">
+    <div class="brand"><span class="logo" aria-hidden="true">⌑</span>Aile Kasası<span class="brand-dot">.</span></div>
+    <button type="button" class="manage" id="manageBtn">Kişileri yönet</button>
+  </div>
+  <div id="people" role="group" aria-label="Aile üyesi seç"></div>
+</header>
+
+<main>
+  <div class="top">
+    <div class="eyebrow">KİŞİSEL ŞİFRE TAKİBİ</div>
+    <h1>Ailenin hesapları.</h1>
+    <p>Şifreler ve değişim tarihleri, elinin altında.</p>
+  </div>
+  <div class="demo"><b>Demo alanındasın.</b> Gerçek şifre girme. Örnek kayıtlar, yenilemede sıfırlanır.</div>
+
+  <div class="stats">
+    <div class="stat"><span>Toplam kayıt</span><strong id="total"></strong><small id="totalNote"></small></div>
+    <div class="stat"><span>Yaklaşan değişim</span><strong id="soon"></strong><small>Önümüzdeki 30 gün</small></div>
+    <div class="stat"><span>Süresi geçen</span><strong id="late"></strong><small>Güncelleme bekliyor</small></div>
+  </div>
+
+  <div class="tools">
+    <input class="search" id="search" type="search" placeholder="Kurum veya kullanıcı ara…" aria-label="Kayıt ara">
+    <div class="filters" role="group" aria-label="Duruma göre süz">
+      <button type="button" data-filter="all">Tümü</button>
+      <button type="button" data-filter="soon">Yaklaşan</button>
+      <button type="button" data-filter="late">Süresi geçen</button>
+    </div>
+  </div>
+
+  <div id="cards" class="cards"></div>
+  <div class="footer">AİLE KASASI · Daha az hatırlama yükü, daha çok iç rahatlığı.</div>
+</main>
+
+<dialog id="modal" aria-labelledby="formTitle">
+  <h2 id="formTitle">Yeni kayıt</h2>
+  <p>Kurum adları gerçektir; hesap bilgileri ve değişim süreleri örnektir.</p>
+  <form id="form">
+    <label>Kurum adı
+      <input name="name" list="bankOptions" required maxlength="50" placeholder="Kurum seç veya adını yaz">
+      <datalist id="bankOptions"><option value="Akbank"><option value="İş Bankası"><option value="Garanti BBVA"></datalist>
+      <span id="bankHint">Listeden banka seçtiğinde logosu otomatik eklenir. Diğer kurumlar için baş harf gösterilir.</span>
+    </label>
+    <label>Kime ait?<select name="person"></select></label>
+    <label>Kullanıcı adı<input name="user" required maxlength="80" placeholder="ornek.kullanici"></label>
+
+    <fieldset class="rules">
+      <legend>Kurumun şifre kuralları</legend>
+      <label>Karakter türü
+        <select name="ruleType">
+          <option value="unset">Kurum kuralı belirtilmedi</option>
+          <option value="numeric">Yalnızca rakam</option>
+          <option value="alnum">Harf + rakam (özel karakter yok)</option>
+          <option value="special">Harf + rakam + özel karakter</option>
+        </select>
+      </label>
+      <div id="ruleDetails" hidden>
+        <label>Şifre uzunluğu
+          <select name="ruleLength">
+            <option value="6">6 haneli</option>
+            <option value="8" selected>8 haneli</option>
+            <option value="12">12 haneli</option>
+            <option value="16">16 haneli</option>
+            <option value="custom">Özel uzunluk</option>
+            <option value="range">Aralık (en az – en çok)</option>
+          </select>
+        </label>
+        <label id="customLengthRow" hidden>Özel uzunluk (4–64)<input name="customLength" type="number" min="4" max="64" step="1" value="10"></label>
+        <div id="rangeRow" hidden>
+          <div class="pair">
+            <label>En az<input name="rangeMin" type="number" min="4" max="64" step="1" value="8"></label>
+            <label>En çok<input name="rangeMax" type="number" min="4" max="64" step="1" value="16"></label>
+          </div>
+          <small>Üret düğmesi en çok uzunlukta şifre üretir.</small>
+        </div>
+        <div id="requiredTypes">
+          <span>Zorunlu karakterler</span>
+          <div class="ruleChecks">
+            <label><input type="checkbox" name="reqUpper" checked> Büyük harf</label>
+            <label><input type="checkbox" name="reqLower" checked> Küçük harf</label>
+            <label><input type="checkbox" name="reqDigit" checked> Rakam</label>
+            <label id="reqSymbolRow"><input type="checkbox" name="reqSymbol" checked> Özel karakter</label>
+          </div>
+        </div>
+        <label id="symbolsRow">İzin verilen özel karakterler
+          <input name="allowedSymbols" value="!@#*" maxlength="32">
+          <small>Yalnızca yazdığın işaretler kullanılır. Nokta ve virgül istemiyorsan listeye ekleme.</small>
+        </label>
+      </div>
+      <small>Kuralları kurumun istediği biçimde belirle. Demoda yalnızca bu oturumda hatırlanır.</small>
+    </fieldset>
+
+    <label>Örnek şifre
+      <div class="generate-row">
+        <input name="pass" type="text" required maxlength="64">
+        <button type="button" class="renew" id="generateBtn">Üret</button>
+        <button type="button" class="renew" id="generatedCopy" aria-label="Şifreyi kopyala">Kopyala</button>
+      </div>
+    </label>
+    <span id="copyStatus" class="sr-only" role="status" aria-live="polite"></span>
+    <div id="ruleFeedback" role="status" aria-live="polite"></div>
+
+    <label>Son değişiklik<input name="last" type="date" required></label>
+    <label>Değişim sıklığı
+      <select name="months">
+        <option value="3">3 ayda bir</option>
+        <option value="6" selected>6 ayda bir</option>
+        <option value="12">Yılda bir</option>
+        <option value="0">Süresiz</option>
+      </select>
+    </label>
+    <div class="actions">
+      <button class="renew" type="button" id="deleteBtn">Sil</button>
+      <button class="renew" type="button" id="cancelBtn">Vazgeç</button>
+      <button class="primary" type="submit">Kaydet</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="renewModal" aria-labelledby="renewTitle">
+  <h2 id="renewTitle">Şifreyi güncelle</h2>
+  <p id="renewFor"></p>
+  <ol class="steps">
+    <li class="step">
+      <h3>Yeni şifreyi üret</h3>
+      <div class="generate-row">
+        <input id="draftPass" type="text" maxlength="64" aria-label="Yeni şifre (taslak)" autocomplete="off" spellcheck="false">
+        <button type="button" class="renew" id="draftGenerate">Üret</button>
+        <button type="button" class="renew" id="draftCopy" aria-label="Yeni şifreyi kopyala">Kopyala</button>
+      </div>
+      <small id="draftRule"></small>
+      <small>Yeni şifre ayrı bir taslak olarak saklanır; kayıttaki şifre değişmez.</small>
+    </li>
+    <li class="step">
+      <h3>Bankada şifreyi değiştir</h3>
+      <small>Banka mevcut şifreyi sorarsa:</small>
+      <div class="current-pass">
+        <code id="currentPass"></code>
+        <button type="button" class="renew" id="currentCopy" style="width:auto;padding:8px 12px" aria-label="Mevcut şifreyi kopyala">Kopyala</button>
+      </div>
+      <small>Bu pencereyi kapatabilirsin; taslak kartta bekler.</small>
+    </li>
+    <li class="step" id="confirmStep">
+      <h3>Banka onayladıysa kaydı güncelle</h3>
+      <label class="confirm-check"><input type="checkbox" id="bankConfirmed"> Banka şifrenin değiştiğini onayladı.</label>
+      <small>Onaylayınca yeni şifre kayda geçer ve son değişiklik tarihi bugün olur. Eski şifre silinir.</small>
+    </li>
+  </ol>
+  <div id="renewFeedback" role="status" aria-live="polite"></div>
+  <span id="renewStatus" class="sr-only" role="status" aria-live="polite"></span>
+  <div class="actions renew-actions">
+    <button type="button" class="renew" id="draftDiscard">Taslağı sil</button>
+    <button type="button" class="renew" id="renewLater">Sonra devam et</button>
+    <button type="button" class="primary" id="renewConfirm" disabled>Kaydı güncelle</button>
+  </div>
+</dialog>
+
+<dialog id="peopleModal" aria-labelledby="peopleTitle">
+  <h2 id="peopleTitle">Aile üyeleri</h2>
+  <p>Kişi ekle, adını değiştir. Kaydı olan kişi kaldırılamaz; önce kayıtlarını sil ya da başka kişiye aktar.</p>
+  <div id="peopleList"></div>
+  <form id="peopleForm">
+    <label>Yeni kişi
+      <div class="add-row">
+        <input name="newPerson" maxlength="20" required placeholder="Örn. Kardeşim">
+        <button class="renew" type="submit">Ekle</button>
+      </div>
+    </label>
+    <div id="peopleFeedback" role="status" aria-live="polite"></div>
+    <div class="actions"><button class="primary" type="button" id="peopleDone">Tamam</button></div>
+  </form>
+</dialog>
+
+<div class="mobile-actions">
+  <span>Bir hesap daha mı var?<br>Ailenin listesine ekle.</span>
+  <button class="primary" type="button" id="newBtn">＋ Yeni kayıt</button>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+const bankLogos={"Akbank": "data:image/x-icon;base64,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", "İş Bankası": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIwAAAA8CAYAAAC0ClJLAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTQ1IDc5LjE2MzQ5OSwgMjAxOC8wOC8xMy0xNjo0MDoyMiAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjk2QTc5NjJFMDlGRjExRUFCQzM0QjNCNzRDREEzMEUxIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjk2QTc5NjJGMDlGRjExRUFCQzM0QjNCNzRDREEzMEUxIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6OTZBNzk2MkMwOUZGMTFFQUJDMzRCM0I3NENEQTMwRTEiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6OTZBNzk2MkQwOUZGMTFFQUJDMzRCM0I3NENEQTMwRTEiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7bhxuhAAAMa0lEQVR42uxc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", "Garanti BBVA": "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB3aWR0aD0iMzEwcHgiIGhlaWdodD0iNTlweCIgdmlld0JveD0iMCAwIDMxMCA1OSIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj4KICAgIDx0aXRsZT5Mb2dvPC90aXRsZT4KICAgIDxkZWZzPgogICAgICAgIDxsaW5lYXJHcmFkaWVudCB4MT0iMTMuNDAzMjIwMSUiIHkxPSIyMi44MTA5ODI0JSIgeDI9IjkyLjg1NjczMzIlIiB5Mj0iODMuMjY3NTk4NCUiIGlkPSJsaW5lYXJHcmFkaWVudC0xIj4KICAgICAgICAgICAgPHN0b3Agc3RvcC1jb2xvcj0iIzAwMjgwOCIgb2Zmc2V0PSIwJSI+PC9zdG9wPgogICAgICAgICAgICA8c3RvcCBzdG9wLWNvbG9yPSIjMUQ2QzMxIiBvZmZzZXQ9IjY2LjU4NTI3NTIlIj48L3N0b3A+CiAgICAgICAgICAgIDxzdG9wIHN0b3AtY29sb3I9IiMyMTc1MzYiIG9mZnNldD0iODguNzY3OTgxMyUiPjwvc3RvcD4KICAgICAgICAgICAgPHN0b3Agc3RvcC1jb2xvcj0iIzIxNzUzNiIgb2Zmc2V0PSI4OC43Njc5ODEzJSI+PC9zdG9wPgogICAgICAgICAgICA8c3RvcCBzdG9wLWNvbG9yPSIjMjE3NTM2IiBvZmZzZXQ9Ijg4Ljc2Nzk4MTMlIj48L3N0b3A+CiAgICAgICAgICAgIDxzdG9wIHN0b3AtY29sb3I9IiMyMTc1MzYiIG9mZnNldD0iODguODc0MTQ0MSUiPjwvc3RvcD4KICAgICAgICAgICAgPHN0b3Agc3RvcC1jb2xvcj0iIzIxNzUzNiIgb2Zmc2V0PSI4OC45OTYyMzEyJSI+PC9zdG9wPgogICAgICAgICAgICA8c3RvcCBzdG9wLWNvbG9yPSIjMjM3OTM5IiBvZmZzZXQ9IjEwMCUiPjwvc3RvcD4KICAgICAgICA8L2xpbmVhckdyYWRpZW50PgogICAgICAgIDxsaW5lYXJHcmFkaWVudCB4MT0iNzYuNjgxOTk2NSUiIHkxPSIxNi4zNTE0NDA2JSIgeDI9IjI5LjU2NDQ2MjclIiB5Mj0iMTAwJSIgaWQ9ImxpbmVhckdyYWRpZW50LTIiPgogICAgICAgICAgICA8c3RvcCBzdG9wLWNvbG9yPSIjMEEzRDFEIiBvZmZzZXQ9IjAlIj48L3N0b3A+CiAgICAgICAgICAgIDxzdG9wIHN0b3AtY29sb3I9IiMyQTgyM0IiIG9mZnNldD0iMTAwJSI+PC9zdG9wPgogICAgICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICAgICAgPGxpbmVhckdyYWRpZW50IHgxPSIzOS4xNjMzMzE4JSIgeTE9IjUuNzQ2OTM4NDklIiB4Mj0iNzIuMTM1MzI4NyUiIHkyPSI5Mi45NTA2OTY1JSIgaWQ9ImxpbmVhckdyYWRpZW50LTMiPgogICAgICAgICAgICA8c3RvcCBzdG9wLWNvbG9yPSIjMDAxNjAwIiBvZmZzZXQ9IjAlIj48L3N0b3A+CiAgICAgICAgICAgIDxzdG9wIHN0b3AtY29sb3I9IiMxMTQ2MUEiIG9mZnNldD0iNDUuMTc1NjUzNCUiPjwvc3RvcD4KICAgICAgICAgICAgPHN0b3Agc3RvcC1jb2xvcj0iIzExNDYxQSIgb2Zmc2V0PSI0NS4xNzU2NTM0JSI+PC9zdG9wPgogICAgICAgICAgICA8c3RvcCBzdG9wLWNvbG9yPSIjMTE0NjFBIiBvZmZzZXQ9IjQ1LjI3ODA2MjIlIj48L3N0b3A+CiAgICAgICAgICAgIDxzdG9wIHN0b3AtY29sb3I9IiMyNjgwM0EiIG9mZnNldD0iMTAwJSI+PC9zdG9wPgogICAgICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICAgICAgPGxpbmVhckdyYWRpZW50IHgxPSI2OS41MTA2NTAxJSIgeTE9IjYuMTI2MDcxMTklIiB4Mj0iNDQuNjg4ODE4OSUiIHkyPSIxMDAlIiBpZD0ibGluZWFyR3JhZGllbnQtNCI+CiAgICAgICAgICAgIDxzdG9wIHN0b3AtY29sb3I9IiM0OEI2NTIiIG9mZnNldD0iMCUiPjwvc3RvcD4KICAgICAgICAgICAgPHN0b3Agc3RvcC1jb2xvcj0iIzFFNjQyQSIgb2Zmc2V0PSI2MS45NjAyNDM1JSI+PC9zdG9wPgogICAgICAgICAgICA8c3RvcCBzdG9wLWNvbG9yPSIjMDQzMjEyIiBvZmZzZXQ9IjEwMCUiPjwvc3RvcD4KICAgICAgICA8L2xpbmVhckdyYWRpZW50PgogICAgICAgIDxsaW5lYXJHcmFkaWVudCB4MT0iMzguODQ2NjUyOSUiIHkxPSIwJSIgeDI9IjYxLjE1MzM0NzElIiB5Mj0iODguMzYyNTI4MSUiIGlkPSJsaW5lYXJHcmFkaWVudC01Ij4KICAgICAgICAgICAgPHN0b3Agc3RvcC1jb2xvcj0iIzQ4QjY1MiIgb2Zmc2V0PSIwJSI+PC9zdG9wPgogICAgICAgICAgICA8c3RvcCBzdG9wLWNvbG9yPSIjMUU2RDMzIiBvZmZzZXQ9IjEwMCUiPjwvc3RvcD4KICAgICAgICA8L2xpbmVhckdyYWRpZW50PgogICAgICAgIDxsaW5lYXJHcmFkaWVudCB4MT0iNTAlIiB5MT0iMCUiIHgyPSIzNy4zNjY3NTc1JSIgeTI9IjEwMCUiIGlkPSJsaW5lYXJHcmFkaWVudC02Ij4KICAgICAgICAgICAgPHN0b3Agc3RvcC1jb2xvcj0iIzA2M0IxQSIgb2Zmc2V0PSIwJSI+PC9zdG9wPgogICAgICAgICAgICA8c3RvcCBzdG9wLWNvbG9yPSIjMUQ2OTJGIiBvZmZzZXQ9IjYyLjQ5OTYyODUlIj48L3N0b3A+CiAgICAgICAgICAgIDxzdG9wIHN0b3AtY29sb3I9IiMxRDY5MkYiIG9mZnNldD0iNjIuNDk5NjI4NSUiPjwvc3RvcD4KICAgICAgICAgICAgPHN0b3Agc3RvcC1jb2xvcj0iIzFFNjkzMCIgb2Zmc2V0PSI2My41NDIxNTcxJSI+PC9zdG9wPgogICAgICAgICAgICA8c3RvcCBzdG9wLWNvbG9yPSIjMkI4NDNDIiBvZmZzZXQ9IjEwMCUiPjwvc3RvcD4KICAgICAgICA8L2xpbmVhckdyYWRpZW50PgogICAgICAgIDxsaW5lYXJHcmFkaWVudCB4MT0iMjcuNDcyMzQ4MyUiIHkxPSIwJSIgeDI9IjcyLjUyNzY1MTclIiB5Mj0iODguMzYyNTI4MSUiIGlkPSJsaW5lYXJHcmFkaWVudC03Ij4KICAgICAgICAgICAgPHN0b3Agc3RvcC1jb2xvcj0iIzQ4QjY1MiIgb2Zmc2V0PSIwJSI+PC9zdG9wPgogICAgICAgICAgICA8c3RvcCBzdG9wLWNvbG9yPSIjMUU2RDMzIiBvZmZzZXQ9IjEwMCUiPjwvc3RvcD4KICAgICAgICA8L2xpbmVhckdyYWRpZW50PgogICAgICAgIDxsaW5lYXJHcmFkaWVudCB4MT0iOTAuMTk2MDg0NCUiIHkxPSIxMi4xNzgwMjAzJSIgeDI9IjEyLjkwNzc4NSUiIHkyPSI2Ny41MTg3NjAyJSIgaWQ9ImxpbmVhckdyYWRpZW50LTgiPgogICAgICAgICAgICA8c3RvcCBzdG9wLWNvbG9yPSIjMzU5OTQzIiBvZmZzZXQ9IjAlIj48L3N0b3A+CiAgICAgICAgICAgIDxzdG9wIHN0b3AtY29sb3I9IiMwMjMxMTAiIG9mZnNldD0iMTAwJSI+PC9zdG9wPgogICAgICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICA8L2RlZnM+CiAgICA8ZyBpZD0iMDNfRm9vdGVyIiBzdHJva2U9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSIgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj4KICAgICAgICA8ZyBpZD0iMTIwMCIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTE2LjAwMDAwMCwgLTY3LjAwMDAwMCkiPgogICAgICAgICAgICA8ZyBpZD0iTG9nbyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYuMDAwMDAwLCA2Ny4wMDAwMDApIj4KICAgICAgICAgICAgICAgIDxnIGlkPSJMT0dPIj4KICAgICAgICAgICAgICAgICAgICA8ZyBpZD0iR3JvdXAtMjAiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAuMDAwMDAwLCA3LjQzMTUwNykiIGZpbGw9InVybCgjbGluZWFyR3JhZGllbnQtMSkiPgogICAgICAgICAgICAgICAgICAgICAgICA8cGF0aCBkPSJNMCw4LjEwOTc1MjQ5IEMwLDkuOTU2MzM3MTcgMC43MTg5OTgyODgsMTEuOTQ0MTIwNSAyLjA4NTQ2NjYxLDEzLjcxOTE4OSBMMi4wODU0NjY2MSwxMy43MTkxODkgQzMuNTk2ODQ5MzIsMTUuNjM2MzczIDUuNjgzMjQ0ODYsMTcuMTI3MjEwNSA4LjIwMDY2NzgxLDE4LjI2MzIxNzYgTDguMjAwNjY3ODEsMTguMjYzMjE3NiBDMTEuNDM4MDE4LDE5LjYxMTkzOTYgMTQuMDk5NDI2NCwyMC4wMzgyODYxIDE2LjE4NTgyMTksMjAuMDM4Mjg2MSBMMTYuMTg1ODIxOSwyMC4wMzgyODYxIEMxOS4xMzUyMDEyLDIwLjAzODI4NjEgMjAuODYyMDk3NiwxOS4xODY1MSAyMS41MDk1Njc2LDE4LjgzMTY3OTYgTDIxLjUwOTU2NzYsMTguODMxNjc5NiBDMTYuNjE3Nzc4Myw3LjA0NDM0NDY1IDcuMjY1MjI2ODgsMS42NDc2MjI5OCA1LjgyNzIzMDMxLDAuODY3MzYzMDE0IEw1LjgyNzIzMDMxLDAuODY3MzYzMDE0IEMyLjE1NzkyMzgsMi4zNTgyMDA1IDAuMDcxNTI4MjUzNCw0LjkxNTM2MjcgMCw4LjEwOTc1MjQ5IiBpZD0iRmlsbC0xOCI+PC9wYXRoPgogICAgICAgICAgICAgICAgICAgIDwvZz4KICAgICAgICAgICAgICAgICAgICA8ZyBpZD0iR3JvdXAtMjMiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDI2LjU0MTA5NiwgMTEuNjc4MDgyKSIgZmlsbD0idXJsKCNsaW5lYXJHcmFkaWVudC0yKSI+CiAgICAgICAgICAgICAgICAgICAgICAgIDxwYXRoIGQ9Ik03LjY4MzI3OTc3LDUuNzA1NzExMTIgQzYuMzYwOTYxNTQsOC4zODk0ODQyOSA0LjA2NDg3MDkyLDEyLjMwNjk1IDAuMjM4OTUxNTI4LDE1LjY0MzYzNDIgTDAuMjM4OTUxNTI4LDE1LjY0MzYzNDIgQzAuNjU2NjY3NTQ1LDE1LjcxNTc2MzUgMS4wNzM0ODUyNSwxNS43ODg4Mjk2IDEuNjMwNDM5OTQsMTUuNzg4ODI5NiBMMS42MzA0Mzk5NCwxNS43ODg4Mjk2IEMzLjY0ODA1MzIxLDE1Ljc4ODgyOTYgNi41NjkzNzAzOSwxNC44NDY0NjQ1IDkuMjgzMTc3MDMsMTAuNTY1NTQxOSBMOS4yODMxNzcwMywxMC41NjU1NDE5IEMxMC44ODMwNzQzLDguMDk5MDkzNDcgMTEuNDM5MTMwNyw1Ljc3Nzg0MDQ1IDExLjAyMjMxMywzLjc0Njk3ODI0IEwxMS4wMjIzMTMsMy43NDY5NzgyNCBDMTAuNzQyOTM3MywyLjI5NTk2MDkyIDkuOTc4NDcyMDgsMS4zNTI2NTkxNSA5LjQyMTUxNzM5LDAuODQ0OTQzNTk0IEw5LjQyMTUxNzM5LDAuODQ0OTQzNTk0IEM5LjE0MzkzODM2LDEuNzg3MzA4NjIgOC41ODY5ODM2NywzLjYwMTc4Mjg0IDcuNjgzMjc5NzcsNS43MDU3MTExMiIgaWQ9IkZpbGwtMjEiPjwvcGF0aD4KICAgICAgICAgICAgICAgICAgICA8L2c+CiAgICAgICAgICAgICAgICAgICAgPGcgaWQ9Ikdyb3VwLTI2IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg2LjM2OTg2MywgMC4wMDAwMDApIiBmaWxsPSJ1cmwoI2xpbmVhckdyYWRpZW50LTMpIj4KICAgICAgICAgICAgICAgICAgICAgICAgPHBhdGggZD0iTTMuOTE4MTczNTIsMS4xMzU0MjgwOCBDMi4wOTEyMDI0NCwyLjI5OTAzMDU2IDEuMTQwOTEzMjQsNC44NDQxMTc0OSAwLjg0ODM3MTM4NSw1Ljg2MjE1MjI3IEwwLjg0ODM3MTM4NSw1Ljg2MjE1MjI3IEM3LjEzMjM1OTIxLDkuNzE2NDA5MzggMTEuMTUyNDUwNSwxNC44MDg0NjE1IDEzLjM0NTU3MDgsMTguNDQ0ODM2NyBMMTMuMzQ1NTcwOCwxOC40NDQ4MzY3IEMxNC44MDczMzY0LDIwLjg0NDM1NTkgMTUuNzU2NjgxOSwyMi44ODEzNjQ2IDE2LjE5NDU1MSwyNC4xMTcyODEzIEwxNi4xOTQ1NTEsMjQuMTE3MjgxMyBDMTYuNjM0MzA3NSwyMi4yOTkwOTM4IDE2LjU1OTc1NjUsMjAuNjI2NDczOSAxNi41NTk3NTY1LDIwLjYyNjQ3MzkgTDE2LjU1OTc1NjUsMjAuNjI2NDczOSBDMTYuNDE0NDI5Miw5LjY0NDA5NTEgMTIuODMzMTUwNywyLjAwNzg5NTE1IDcuMjA1OTY2NTEsMC42MjY0MTA2OTUgTDcuMjA1OTY2NTEsMC42MjY0MTA2OTUgQzcuMDE4MTczNTIsMC41ODc5MDU2OSA2LjgyOTQzNjgzLDAuNTUxMjc4OTc4IDYuNjQwNzAwMTUsMC41MjMxMDQ1ODQgTDYuNjQwNzAwMTUsMC41MjMxMDQ1ODQgQzYuNDg1OTM2MDcsMC41MDUyNjA4MDEgNi4zMzIxMTU2OCwwLjQ5NjgwODQ4MyA2LjE3OTIzODk2LDAuNDk2ODA4NDgzIEw2LjE3OTIzODk2LDAuNDk2ODA4NDgzIEM1LjM4OTM3NTk1LDAuNDk2ODA4NDgzIDQuNjM1MzcyOTEsMC43MjY4OTkzNjggMy45MTgxNzM1MiwxLjEzNTQyODA4IiBpZD0iRmlsbC0yNCI+PC9wYXRoPgogICAgICAgICAgICAgICAgICAgIDwvZz4KICAgICAgICAgICAgICAgICAgICA8ZyBpZD0iR3JvdXAtMjkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDcuNDMxNTA3LCAzMS44NDkzMTUpIiBmaWxsPSJ1cmwoI2xpbmVhckdyYWRpZW50LTQpIj4KICAgICAgICAgICAgICAgICAgICAgICAgPHBhdGggZD0iTTEwLjE0MDgyMTksOS44MzUwNjg0OSBDOS4wNDMzMTgxMSwxMS4zNTI5MTU5IDcuOTYzNzQ0MjksMTIuNjcxNDc3NSA2Ljk4MDQyNjE4LDEzLjc5MjU3MzQgTDYuOTgwNDI2MTgsMTMuNzkyNTczNCBDNi42NjA1MTc1LDE0LjE2MjAyNTQgNi4zNDcyMTQ2MSwxNC41MTA1NDc5IDYuMDQzMzQ4NTUsMTQuODM4MTQwOSBMNi4wNDMzNDg1NSwxNC44MzgxNDA5IEMzLjMzOTY5NTU5LDE3LjY1NzI2MDMgMS4xNDc1MTkwMywxOS4zNDg5MTM5IDAuMzQzNTAwNzYxLDE5Ljg0MTIxMzMgTDAuMzQzNTAwNzYxLDE5Ljg0MTIxMzMgQzAuNzA4NzA2MjQsMjEuMDM5NjU3NSAyLjMxNTc5OTA5LDI1LjQ3OTQ1MjEgNS45NzA2ODQ5MywyNS40Nzk0NTIxIEw1Ljk3MDY4NDkzLDI1LjQ3OTQ1MjEgQzEwLjIwODc2NzEsMjUuNDc5NDUyMSAxMi43NjcwOTI4LDE5Ljc3MTE0NDggMTIuNzY3MDkyOCwxOS43NzExNDQ4IEwxMi43NjcwOTI4LDE5Ljc3MTE0NDggTDEyLjc2NzA5MjgsMTkuNzAxMDc2MyBDMTIuOTAwMTUyMiwxOS40NDM1NTE5IDE0LjczNDY3MjgsMTUuNTY3OTQ1MiAxNS42NDM0Mzk5LDEwLjU3Mzk3MjYgTDE1LjY0MzQzOTksMTAuNTczOTcyNiBDMTUuNjg1OTA1NiwxMC4zMzAwOTc4IDE1LjcyNTU0MDMsMTAuMDg0NDAzMSAxNS43NjMyODc3LDkuODM1MDY4NDkgTDE1Ljc2MzI4NzcsOS44MzUwNjg0OSBDMTUuODE2MTMzOSw5LjUyMzg1NTE5IDE1Ljg2NDI2MTgsOS4yMDgwOTE5OCAxNS45MDY3Mjc1LDguODg5NTk4ODMgTDE1LjkwNjcyNzUsOC44ODk1OTg4MyBDMTYuMDcyODE1OCw3LjYxMDE2NjM0IDE2LjE2NDM1MzEsNi4yNzk3NzQ5NSAxNi4xNDQ1MzU4LDQuOTM2NjQzODQgTDE2LjE0NDUzNTgsNC45MzY2NDM4NCBDMTYuMTE4MTEyNiwzLjQzMzM1NjE2IDE1Ljk1MTA4MDcsMS45MDczMTg5OCAxNS41OTkwODY4LDAuNDEwNDAxMTc0IEwxNS41OTkwODY4LDAuNDEwNDAxMTc0IEMxNS41ODIxMDA1LDAuMzMzMDUyODM4IDE1LjU2NDE3MDUsMC4yNTc1MjQ0NjIgMTUuNTQzNDA5NCwwLjE4MDE3NjEyNSBMMTUuNTQzNDA5NCwwLjE4MDE3NjEyNSBDMTMuOTc1OTUxMyw0LjAwMjA5MzkzIDEyLjAzMzg1MDgsNy4yMTUyMzQ4MyAxMC4xNDA4MjE5LDkuODM1MDY4NDkiIGlkPSJGaWxsLTI3Ij48L3BhdGg+CiAgICAgICAgICAgICAgICAgICAgPC9nPgogICAgICAgICAgICAgICAgICAgIDxnIGlkPSJHcm91cC0zMiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjUuNDc5NDUyLCAyOS43MjYwMjcpIiBmaWxsPSJ1cmwoI2xpbmVhckdyYWRpZW50LTUpIj4KICAgICAgICAgICAgICAgICAgICAgICAgPHBhdGggZD0iTTAuNTQzNjY3ODA4LDQuNDI5NDE5MzYgTDAuNTQzNjY3ODA4LDUuMjEwNTk2MiBDMC41NDM2Njc4MDgsNi42MDg4MjkzOSAwLjUyNjQ2OTE3OCw5LjE3NTE2MDM0IDAuODUyMjg3NjcxLDExLjc0MzMyNSBMMC44NTIyODc2NzEsMTEuNzQzMzI1IEMxLjE4ODYxNjQ0LDE0LjM5NDAwODQgMS44ODk5MzgzNiwxNy4wNDc0NDI0IDMuMzU1NjQzODQsMTguNDE3MjUyNSBMMy4zNTU2NDM4NCwxOC40MTcyNTI1IEM0LjA5NTE4NDkzLDE5LjEyNzgzIDQuOTA5MjUzNDIsMTkuNDgyNjYwMyA1Ljg3MDQ2NTc1LDE5LjQ4MjY2MDMgTDUuODcwNDY1NzUsMTkuNDgyNjYwMyBMNS45NDQ5OTMxNSwxOS40ODI2NjAzIEw1Ljk1NDU0Nzk1LDE5LjQ4MjY2MDMgTDYuMTY3NjE5ODYsMTkuNDgyNjYwMyBDNi42NDA1ODIxOSwxOS40ODI2NjAzIDcuODIzNDY1NzUsMTkuMzM4NzExMSA4LjY4MTQ4NjMsMTguMDU3ODM3OCBMOC42ODE0ODYzLDE4LjA1NzgzNzggQzkuMDI0NTAzNDIsMTcuNTM2MTM2NCA5LjMxNjg4MDE0LDE2LjgyNzM5MjYgOS40OTc0NjU3NSwxNS44NjE5MjQgTDkuNDk3NDY1NzUsMTUuODYxOTI0IEM5LjM0OTM2NjQ0LDE1LjM2NDA2MTMgOC45MDUwNjg0OSwxMy43MzExMDgzIDguMDkxLDExLjc0MzMyNSBMOC4wOTEsMTEuNzQzMzI1IEM3Ljg2OTMyODc3LDExLjE0MDAyMTggNy42MTcwODIxOSwxMC41MDAwNDM2IDcuMzM0MjYwMjcsOS44NDI2NDQ3NyBMNy4zMzQyNjAyNyw5Ljg0MjY0NDc3IEM1Ljg5NDM1Mjc0LDYuNTc0OTA1MDQgMy43NDA3MDIwNSwyLjc4MTc5NjM5IDAuODM5ODY2NDM4LDAuNTI0NDUyMDU1IEwwLjgzOTg2NjQzOCwwLjUyNDQ1MjA1NSBDMC42OTE3NjcxMjMsMS4zMDU2Mjg4OSAwLjU0MzY2NzgwOCwyLjcyNTg2NzA2IDAuNTQzNjY3ODA4LDQuNDI5NDE5MzYiIGlkPSJGaWxsLTMwIj48L3BhdGg+CiAgICAgICAgICAgICAgICAgICAgPC9nPgogICAgICAgICAgICAgICAgICAgIDxnIGlkPSJHcm91cC0zNSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMjUuNDc5NDUyLCA2LjM2OTg2MykiIGZpbGw9InVybCgjbGluZWFyR3JhZGllbnQtNikiPgogICAgICAgICAgICAgICAgICAgICAgICA8cGF0aCBkPSJNNi4yMjk5MTkwNSwwLjAwOTE2ODc0MjIyIEM1LjMzMjM0NzQ1LDAuMDA5MTY4NzQyMjIgNC41ODUzMzYyNCwwLjI5MzM5OTc1MSAzLjkxMjY0MDEsMC44NjE4NjE3NjggTDMuOTEyNjQwMSwwLjg2MTg2MTc2OCBDMC42OTg3NTQ2NywzLjU1OTMwNTczIDAuMzI1MjQ5MDY2LDExLjIyODA0MTcgMC4xNzU2NTM3OTgsMTQuMTM5MTE3NCBMMC4xNzU2NTM3OTgsMTQuMTM5MTE3NCBMMC4xMDAzNzM1OTksMTQuNzA2NjYyNSBDMC4wMjYwNTg1MzA1LDE2LjQ4MjY0NzkgMC4xNzU2NTM3OTgsMTguNjEyNTQ2NyAwLjMyNTI0OTA2NiwxOS42NzcwMzc3IEwwLjMyNTI0OTA2NiwxOS42NzcwMzc3IEM3LjI3NjEyMDgsMTQuMjA5NzE2NyA5LjY2NzcxNDgyLDYuMTE1NTUxMDYgOS45NjY5MDUzNSw1LjA1MDE0MzIxIEw5Ljk2NjkwNTM1LDUuMDUwMTQzMjEgQzkuNTkzMzk5NzUsMC40MzU1MTUyNTUgNi42MDM0MjQ2NiwwLjAwOTE2ODc0MjIyIDYuNTI4MTQ0NDYsMC4wMDkxNjg3NDIyMiBMNi41MjgxNDQ0NiwwLjAwOTE2ODc0MjIyIEw2LjIyOTkxOTA1LDAuMDA5MTY4NzQyMjIgWiIgaWQ9IkZpbGwtMzMiPjwvcGF0aD4KICAgICAgICAgICAgICAgICAgICA8L2c+CiAgICAgICAgICAgICAgICAgICAgPGcgaWQ9Ikdyb3VwLTM4IiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgyNy42MDI3NDAsIDI4LjY2NDM4NCkiIGZpbGw9InVybCgjbGluZWFyR3JhZGllbnQtNykiPgogICAgICAgICAgICAgICAgICAgICAgICA8cGF0aCBkPSJNMC4xMDQzOTQ5NzcsMC42MDIzMjY3NTMgQzEuMDY1MTgyNjUsMS40OTc4NTQ1NSAyLjUyMzE3MzUyLDMuMDc3MjA1ODggNC4wMTU2Njc4MSw1LjUyMjEwOTE5IEw0LjAxNTY2NzgxLDUuNTIyMTA5MTkgTDQuMDI3MTY4OTUsNS41NDA4NDQwOCBMNC4wMjgwNTM2NSw1LjU0MTc4MDgyIEM1LjE5ODUxNTk4LDcuNDQ5OTI5NDkgNi4zOTU1MTk0MSw5Ljg4MzU5MTg2IDcuNDAwNTQyMjQsMTIuOTM0NTY4OSBMNy40MDA1NDIyNCwxMi45MzQ1Njg5IEM3LjY4MDEwODQ1LDEzLjc4MDQ0OTIgNy45NDM3NSwxNC42NzU5NzcgOC4xODg4MTI3OSwxNS42MTkyNzg4IEw4LjE4ODgxMjc5LDE1LjYxOTI3ODggQzguNTA2NDIxMjMsMTUuMTM4NzI4OCA4Ljk3NDQyOTIyLDE0LjQzNjE3MDQgOS4zNzI1NDU2NiwxMy41NzQzNjU0IEw5LjM3MjU0NTY2LDEzLjU3NDM2NTQgQzkuNDYyNzg1MzksMTMuMzcwMTU1MSA5LjU0OTQ4NjMsMTMuMTU2NTc3NCA5LjYyNzM0MDE4LDEyLjkzNDU2ODkgTDkuNjI3MzQwMTgsMTIuOTM0NTY4OSBDOS42ODQ4NDU4OSwxMi42OTQ3NjIzIDkuNzg4MzU2MTYsMTIuNTAzNjY2NCA5Ljg2MDkwMTgzLDEyLjI4MTY1NzkgTDkuODYwOTAxODMsMTIuMjgxNjU3OSBMOS45MDE1OTgxNywxMi4xMzY0NjI1IEMxMC42NTUzNjUzLDkuMzA3NDkzOTYgOS45MDE1OTgxNyw2Ljc2ODkxNjIgNy42NDAyOTY4LDQuMzc0NTk3MSBMNy42NDAyOTY4LDQuMzc0NTk3MSBDNC42MjYxMTMwMSwxLjE4MzEwODM4IDEuOTUzNDI0NjYsMC42MDIzMjY3NTMgMC4zMDk2NDYxMTksMC42MDIzMjY3NTMgTDAuMzA5NjQ2MTE5LDAuNjAyMzI2NzUzIEwwLjEwNDM5NDk3NywwLjYwMjMyNjc1MyBaIiBpZD0iRmlsbC0zNiI+PC9wYXRoPgogICAgICAgICAgICAgICAgICAgIDwvZz4KICAgICAgICAgICAgICAgICAgICA8ZyBpZD0iR3JvdXAtNDEiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAuMDAwMDAwLCAyOS43MjYwMjcpIiBmaWxsPSJ1cmwoI2xpbmVhckdyYWRpZW50LTgpIj4KICAgICAgICAgICAgICAgICAgICAgICAgPHBhdGggZD0iTTAuNTAzNDg0NTg5LDExLjc0MzMyNSBDMC40MzEwMjczOTcsMTIuMDk4MTU1NCAwLjQzMTAyNzM5NywxMi41MjQ1MDE5IDAuNDMxMDI3Mzk3LDEyLjk1MDg0ODQgQzAuNjQ3NDcwMDM0LDE1LjcxODg5MTcgMi43MzM4NjU1OCwxOC40MTcyNTI1IDYuMTg2NzI5NDUsMjAuMTIxNzIxNyBDNy4wMTkwNTgyMiwxOS41NzQzNDc4IDEwLjg4NDM3MDcsMTcuMDAwNjgxOCAxNS4wMjkyOTM3LDExLjc0MzMyNSBDMTYuMTIzNTgzLDEwLjM1NjA5NDMgMTcuMjM1NTIyMyw4Ljc4MzY1NTA0IDE4LjMxNzczNTQsNy4wMTEzMzcxNyBMMTguNTU1NTQzNyw2LjYxNjE2NDM4IEMxOS42MDA1OTkzLDQuODYwMzUwMjUgMjAuNjE1LDIuOTE1NjYwMDIgMjEuNTU1MDg1NiwwLjc3NDc1ODcxNyBMMjEuNzI1MDgxMywwLjM4MzI1MzQyNSBDMjEuMTcyMzYzLDAuMjMwMTM1NDMgMjAuMTc3NDcsMC4wMjc1MDYyMjY3IDE4LjcwNDE3MzgsMC4wMjc1MDYyMjY3IEMxNi4wNDE4MzY1LDAuMDI3NTA2MjI2NyAxMS43OTg0NDYxLDAuODA4NjgzMDY0IDYuNDc0NzAwMzQsNC4yMTY3MDQ1NSBDMi45NDkzNzkyOCw2LjQ4OTYzNTc0IDAuODYzOTEyNjcxLDkuMTE2NDgwMzkgMC41MDM0ODQ1ODksMTEuNzQzMzI1IFoiIGlkPSJGaWxsLTM5Ij48L3BhdGg+CiAgICAgICAgICAgICAgICAgICAgPC9nPgogICAgICAgICAgICAgICAgPC9nPgogICAgICAgICAgICAgICAgPGcgaWQ9Ikdyb3VwLTI1LUNvcHkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDQ0LjU4OTA0MSwgOS4wMjM5NzMpIj4KICAgICAgICAgICAgICAgICAgICA8cGF0aCBkPSJNMTkzLjUwMTM2NCwzMS4xMzc5MzQ2IEwxODQuMzQyNzE3LDMxLjEzNzkzNDYgQzE4NC4wMTc0NTEsMzEuMTM3OTM0NiAxODMuNzU0NDAzLDMwLjg3Mzg3OSAxODMuNzU0NDAzLDMwLjU0NzM2NyBMMTgzLjc1MzYxNSwyMi4zMDM5Mjg1IEMxODMuNzUzNjE1LDIxLjk3ODIwNzIgMTg0LjAxNzQ1MSwyMS43MTMzNjA5IDE4NC4zNDI3MTcsMjEuNzEzMzYwOSBMMTkzLjU4NTYzNCwyMS43MTMzNjA5IEMxOTcuOTUwMzQ1LDIxLjc3MTg2NDMgMTk5LjgxNjA5NywyMy4wMDIwMTU4IDE5OS44MTYwOTcsMjYuNDcyNjg3NiBDMTk5LjgxNjA5NywyOS40ODI0NDc5IDE5Ny45MDkzOTEsMzEuMTM3OTM0NiAxOTMuNTAxMzY0LDMxLjEzNzkzNDYgTTE4NC4zNDgyMyw5LjA5MDg2NzQ2IEwxOTMuMzc5MjkxLDkuMDkwODY3NDYgQzE5Ni42Mjk1OTEsOS4wOTA4Njc0NiAxOTguNDAzMTk4LDEwLjAyMDU5NjQgMTk4LjQwMzE5OCwxMi42NTQ4Mjg0IEMxOTguNDAzMTk4LDE1LjY1NjY4MjggMTk2LjcxMzg2MSwxNy4xNTcyMTQ3IDE5My4zNzkyOTEsMTcuMjE4MDg5OCBMMTg0LjM0ODIzLDE3LjIxODg4MDQgQzE4NC4wMjM3NTIsMTcuMjE4ODgwNCAxODMuNzU5OTE2LDE2Ljk1NDAzNDIgMTgzLjc1OTkxNiwxNi42Mjc1MjIyIEwxODMuNzU5OTE2LDkuNjgxNDM1MDggQzE4My43NTk5MTYsOS4zNTU3MTM3MSAxODQuMDIzNzUyLDkuMDkwODY3NDYgMTg0LjM0ODIzLDkuMDkwODY3NDYgTTIwMC4zMzAzOCwxOS4wMTE5MjkxIEwyMDAuMDcxMjcsMTguOTIzMzgzNSBDMjAyLjE5MDYyLDE3Ljg1OTI1NSAyMDMuNTE2MDk5LDE1LjU1NDY5NzIgMjAzLjUxNjA5OSwxMi43MTY0OTQxIEMyMDMuNTE2MDk5LDcuODg0NDMzNDcgMTk5Ljc2MTc1NSw0LjYwMzUwMjI2IDE5NC40NjIxOTksNC42MDM1MDIyNiBMMTc5LjIzNDU0MSw0LjYwMzUwMjI2IEMxNzguOTEwMDYyLDQuNjAzNTAyMjYgMTc4LjY0NjIyNiw0Ljg2ODM0ODUxIDE3OC42NDYyMjYsNS4xOTQ4NjA0NiBMMTc4LjY0NjIyNiwzNS4wNDU4MDA0IEMxNzguNjQ2MjI2LDM1LjM3MjMxMjQgMTc4LjkxMDA2MiwzNS42MzcxNTg2IDE3OS4yMzQ1NDEsMzUuNjM3MTU4NiBMMTkzLjc5NDM0LDM1LjYzNzE1ODYgQzIwMS4wODA5MzQsMzUuNjM3MTU4NiAyMDQuOTIzNDg2LDMyLjQ4OTA0NTggMjA0LjkyMzQ4NiwyNi4zMjcyMTk4IEMyMDQuOTIzNDg2LDIyLjgyNDEzNCAyMDMuMTU2OTY4LDIwLjEyMDMzMDQgMjAwLjMzMDM4LDE5LjAxMTkyOTEiIGlkPSJGaWxsLTEiIGZpbGw9IiMwMDQ0ODAiPjwvcGF0aD4KICAgICAgICAgICAgICAgICAgICA8cGF0aCBkPSJNMjMyLjQ1NzYyOSw0LjkxOTM0MTMgTDIyMi4zMDAzNDMsMjQuMzMwNTk1MyBDMjIyLjA3OTAzNiwyNC43NTExODcgMjIxLjQ3OTY5NiwyNC43NTExODcgMjIxLjI1ODM4OSwyNC4zMzEzODU5IEwyMTEuMDkxNjUzLDQuOTE5MzQxMyBDMjEwLjk5MDA1Niw0LjcyNDg1NzE4IDIxMC43ODkyMjYsNC42MDM4OTc1NSAyMTAuNTcxMDY5LDQuNjAzODk3NTUgTDIwNS42NTgyMSw0LjYwMzg5NzU1IEMyMDUuMzI0MjgxLDQuNjAzODk3NTUgMjA1LjExMDg0OSw0Ljk2MDQ1MTc2IDIwNS4yNjkxNTEsNS4yNTYxMzA4NyBMMjIxLjI3MzM1MywzNS4zMjUyNzI1IEMyMjEuNDk0NjYsMzUuNzQxMTIwNyAyMjIuMDg4NDg3LDM1Ljc0MTEyMDcgMjIyLjMxMDU4MiwzNS4zMjUyNzI1IEwyMzguMzE1NTcyLDUuMjU2MTMwODcgQzIzOC40NzM4NzMsNC45NjEyNDIzNSAyMzguMjYwNDQyLDQuNjAzODk3NTUgMjM3LjkyNjUxMiw0LjYwMzg5NzU1IEwyMzIuOTc4MjEyLDQuNjAzODk3NTUgQzIzMi43NjAwNTUsNC42MDM4OTc1NSAyMzIuNTYwMDEzLDQuNzI1NjQ3NzcgMjMyLjQ1NzYyOSw0LjkxOTM0MTMiIGlkPSJGaWxsLTMiIGZpbGw9IiMwMDQ0ODAiPjwvcGF0aD4KICAgICAgICAgICAgICAgICAgICA8cGF0aCBkPSJNMTYxLjUyODYzNywzMS4xMzc5MzQ2IEwxNTIuMzY5MjAyLDMxLjEzNzkzNDYgQzE1Mi4wNDQ3MjQsMzEuMTM3OTM0NiAxNTEuNzgwODg4LDMwLjg3Mzg3OSAxNTEuNzgwODg4LDMwLjU0NzM2NyBMMTUxLjc4MDg4OCwyMi4zMDM5Mjg1IEMxNTEuNzgwODg4LDIxLjk3ODIwNzIgMTUyLjA0MzkzNiwyMS43MTMzNjA5IDE1Mi4zNjkyMDIsMjEuNzEzMzYwOSBMMTYxLjYxMjExOSwyMS43MTMzNjA5IEMxNjUuOTc3NjE4LDIxLjc3MTg2NDMgMTY3Ljg0MzM3LDIzLjAwMjAxNTggMTY3Ljg0MzM3LDI2LjQ3MjY4NzYgQzE2Ny44NDMzNywyOS40ODI0NDc5IDE2NS45MzU4NzcsMzEuMTM3OTM0NiAxNjEuNTI4NjM3LDMxLjEzNzkzNDYgTTE1Mi4zNzU1MDMsOS4wOTA4Njc0NiBMMTYxLjQwNTc3Niw5LjA5MDg2NzQ2IEMxNjQuNjU2ODY0LDkuMDkwODY3NDYgMTY2LjQyOTY4MywxMC4wMjA1OTY0IDE2Ni40Mjk2ODMsMTIuNjU0ODI4NCBDMTY2LjQyOTY4MywxNS42NTY2ODI4IDE2NC43NDExMzMsMTcuMTU3MjE0NyAxNjEuNDA1Nzc2LDE3LjIxODA4OTggTDE1Mi4zNzU1MDMsMTcuMjE4ODgwNCBDMTUyLjA1MDIzNywxNy4yMTg4ODA0IDE1MS43ODcxODksMTYuOTU0MDM0MiAxNTEuNzg3MTg5LDE2LjYyNzUyMjIgTDE1MS43ODY0MDEsOS42ODE0MzUwOCBDMTUxLjc4NjQwMSw5LjM1NTcxMzcxIDE1Mi4wNTAyMzcsOS4wOTA4Njc0NiAxNTIuMzc1NTAzLDkuMDkwODY3NDYgTTE2OC4zNTc2NTMsMTkuMDExOTI5MSBMMTY4LjA5Nzc1NSwxOC45MjMzODM1IEMxNzAuMjE3MTA1LDE3Ljg1OTI1NSAxNzEuNTQyNTg1LDE1LjU1NDY5NzIgMTcxLjU0MjU4NSwxMi43MTY0OTQxIEMxNzEuNTQyNTg1LDcuODg0NDMzNDcgMTY3Ljc4ODI0LDQuNjAzNTAyMjYgMTYyLjQ4OTQ3Miw0LjYwMzUwMjI2IEwxNDcuMjYxODE0LDQuNjAzNTAyMjYgQzE0Ni45MzY1NDcsNC42MDM1MDIyNiAxNDYuNjcyNzExLDQuODY4MzQ4NTEgMTQ2LjY3MjcxMSw1LjE5NDg2MDQ2IEwxNDYuNjcyNzExLDM1LjA0NTgwMDQgQzE0Ni42NzI3MTEsMzUuMzcyMzEyNCAxNDYuOTM2NTQ3LDM1LjYzNzE1ODYgMTQ3LjI2MTgxNCwzNS42MzcxNTg2IEwxNjEuODIwODI1LDM1LjYzNzE1ODYgQzE2OS4xMDgyMDcsMzUuNjM3MTU4NiAxNzIuOTUwNzU5LDMyLjQ4OTA0NTggMTcyLjk1MDc1OSwyNi4zMjcyMTk4IEMxNzIuOTUwNzU5LDIyLjgyNDEzNCAxNzEuMTg0MjQsMjAuMTIwMzMwNCAxNjguMzU3NjUzLDE5LjAxMTkyOTEiIGlkPSJGaWxsLTUiIGZpbGw9IiMwMDQ0ODAiPjwvcGF0aD4KICAgICAgICAgICAgICAgICAgICA8cGF0aCBkPSJNMjM3LjU2Mjk3LDMwLjgyMjE3NDcgTDI0Ny43MjEwNDMsMTEuNDEwOTIwNiBDMjQ3Ljk0MjM1LDEwLjk5MDMyOSAyNDguNTQwOTAzLDEwLjk5MDMyOSAyNDguNzYyMjEsMTEuNDEwOTIwNiBMMjU4LjkyODk0NiwzMC44MjI5NjUyIEMyNTkuMDMxMzMsMzEuMDE2NjU4OCAyNTkuMjMxMzczLDMxLjEzNzYxODQgMjU5LjQ0OTUyOSwzMS4xMzc2MTg0IEwyNjQuMzYyMzg5LDMxLjEzNzYxODQgQzI2NC42OTYzMTgsMzEuMTM3NjE4NCAyNjQuOTA5NzUsMzAuNzgxMDY0MiAyNjQuNzUxNDQ4LDMwLjQ4NTM4NTEgTDI0OC43NDgwMzQsMC40MTYyNDM0NDIgQzI0OC41MjU5MzksMC4wMDAzOTUyOTI5MTggMjQ3LjkzMjExMSwwLjAwMDM5NTI5MjkxOCAyNDcuNzEwODA0LDAuNDE2MjQzNDQyIEwyMzEuNzA1ODE1LDMwLjQ4NTM4NTEgQzIzMS41NDc1MTMsMzAuNzgwMjczNiAyMzEuNzYwOTQ1LDMxLjEzNzYxODQgMjMyLjA5NDg3NCwzMS4xMzc2MTg0IEwyMzcuMDQyMzg2LDMxLjEzNzYxODQgQzIzNy4yNjA1NDMsMzEuMTM3NjE4NCAyMzcuNDYxMzc0LDMxLjAxNjY1ODggMjM3LjU2Mjk3LDMwLjgyMjE3NDciIGlkPSJGaWxsLTciIGZpbGw9IiMwMDQ0ODAiPjwvcGF0aD4KICAgICAgICAgICAgICAgICAgICA8cGF0aCBkPSJNMTMzLjUwNzYxOSw3LjYwNjA2ODIgQzEzMy41MDc2MTksNi43MzcyMTQzNyAxMzMuMjIwOTQ0LDYuMDMzNTkyOTggMTMyLjY0Mjg2OCw1LjQ5Njc4NTE5IEMxMzIuMDY0NzkyLDQuODc2MTc1MzEgMTMxLjM2MzA2Nyw0LjYyNzE0MDc4IDEzMC41MzkyNjksNC42MjcxNDA3OCBDMTI5LjY3NjA5Myw0LjYyNzE0MDc4IDEyOC45NzM1ODEsNC45MTgwNzYzNiAxMjguNDM4MDM0LDUuNDk2Nzg1MTkgQzEyOC4wNTQ0ODcsNS44NTQ5MjA1OCAxMjcuNzk2OTUyLDYuMjg2NTgwNDQgMTI3LjY2ODU3OCw2Ljc5MTc2NDc5IEMxMjcuNjAzOTk3LDcuMDQ0NzUyMjYgMTI3LjU3MTcwNyw3LjMxNTkyMzIgMTI3LjU3MTcwNyw3LjYwNjA2ODIgQzEyNy41NzE3MDcsOC40MzQ2MDIxNiAxMjcuODYyMzIsOS4xMzc0MzI5NiAxMjguNDM4MDM0LDkuNzE2MTQxOCBDMTI4Ljk3MzU4MSwxMC4yOTU2NDEyIDEyOS42NzYwOTMsMTAuNTg1Nzg2MiAxMzAuNTM5MjY5LDEwLjU4NTc4NjIgQzEzMS4zNjMwNjcsMTAuNTg1Nzg2MiAxMzIuMDY0NzkyLDEwLjMzNzU0MjMgMTMyLjY0Mjg2OCw5LjcxNjE0MTggQzEzMy4yMjA5NDQsOS4xMzc0MzI5NiAxMzMuNTA3NjE5LDguNDM0NjAyMTYgMTMzLjUwNzYxOSw3LjYwNjA2ODIiIGlkPSJGaWxsLTkiIGZpbGw9IiMxMTExMTEiPjwvcGF0aD4KICAgICAgICAgICAgICAgICAgICA8cGF0aCBkPSJNMTMzLjc0MjIzNiwzNS42ODE1MTA1IEMxMzMuMzc2ODA0LDM0Ljk3NDcyNjggMTMzLjMyMDg4NiwzMi43MjYzMDA2IDEzMy4zMjA4ODYsMjkuODk3NTg0NSBMMTMzLjMyMDg4NiwxNy41NzA3NzAyIEMxMzMuMzIwODg2LDE0Ljk5NTA0MTUgMTMzLjU3MDU0NiwxMi42NzMwOTA5IDEzMS4xMzIyMywxMi42NzMwOTA5IEMxMzAuMzQ0NjYxLDEyLjY3MzA5MDkgMTI4LjgxNjc3NiwxMy4yMzc1NjkyIDEyNy4wMTMyNDEsMTQuMTkzMzg3NSBDMTI3Ljk1NDM4NywxNC44MjExMTI2IDEyOC4zMTU4ODEsMTYuMDc3MzUzNSAxMjguMzE1ODgxLDE4Ljc5MzgwNjUgTDEyOC4zMTU4ODEsMjkuOTM5NDg1NiBDMTI4LjMxNTg4MSwzMy4xNTMyMTcgMTI4LjMwMDkxOCwzNC45MzA0NTM5IDEyNy44OTI5NTcsMzUuNjgxNTEwNSBMMTMzLjc0MjIzNiwzNS42ODE1MTA1IFoiIGlkPSJGaWxsLTExIiBmaWxsPSIjMTExMTExIj48L3BhdGg+CiAgICAgICAgICAgICAgICAgICAgPHBhdGggZD0iTTExOS40OTkwNCwzNi4xNDU1MDUzIEMxMTcuMTg1OTQ4LDM2LjE0NTUwNTMgMTE1LjU0NTQ0LDM1LjQyNzY1MzQgMTE0LjQ5NDAzNSwzNC4wMzM4NTA2IEMxMTMuNzc4OTIyLDMzLjA2MzgwMTcgMTEzLjQwMDg4OCwzMS4yODk3MjcxIDExMy40MDA4ODgsMjguNzU3NDgwNyBMMTEzLjQwMDg4OCwxNi4yMTc5OTg4IEwxMDkuOTEwMzgsMTYuMjE3OTk4OCBMMTA5LjkxMDM4LDEzLjQ3NTQ1NjUgTDExMy40MDA4ODgsMTMuMDUyNDkzMSBMMTEzLjc3ODkyMiw3LjYwNjE0NzI2IEwxMTguNDA1MTA1LDcuMjY4NTY3MTEgTDExOC40MDUxMDUsMTMuMDk1MTg0NyBMMTI0LjEyNjAxMSwxMy4wOTUxODQ3IEwxMjQuMTI2MDExLDE2LjIxNzk5ODggTDExOC40MDUxMDUsMTYuMjE3OTk4OCBMMTE4LjQwNTEwNSwyMS43MjEyNjY4IEwxMTguNDA1MTA1LDIzLjMxMzUwNjYgTDExOC40MDUxMDUsMjQuMDA2ODUwNCBMMTE4LjQwNTEwNSwyOC45MjU4NzU1IEMxMTguNDA1MTA1LDMxLjMzMzIwOTMgMTE5LjQxMzk4MiwzMi41MTUxMzUyIDEyMS4zNTA2MTYsMzIuNTE1MTM1MiBDMTIyLjU2ODk4NiwzMi41MTUxMzUyIDEyMy43ODgxNDQsMzIuMjE5NDU2MSAxMjUuMDkyMzU5LDMxLjU0MzUwNTIgTDEyNS41MTI5MjEsMzQuNTAwMjk2MiBDMTIzLjQxMDg5OCwzNS41OTc2MjkzIDEyMS4zODk5OTQsMzYuMTQ1NTA1MyAxMTkuNDk5MDQsMzYuMTQ1NTA1MyIgaWQ9IkZpbGwtMTMiIGZpbGw9IiMxMTExMTEiPjwvcGF0aD4KICAgICAgICAgICAgICAgICAgICA8cGF0aCBkPSJNNTAuMTA0MDc2MSwzNS42ODE1MTA1IEM0OS43Njg1NzE0LDM0LjQxNDk5MiA0OS42ODQzMDE1LDMyLjI2MTQzNjIgNDkuNjg0MzAxNSwzMC40ODk3MzMzIEw0OS42ODQzMDE1LDIwLjgyMDg2ODYgQzQ5LjY4NDMwMTUsMTQuNTMwOTY3NiA0Ni44NjYzNzc0LDEyLjUwMzkwNTYgNDAuODA5MTc5NSwxMi41MDM5MDU2IEMzOC40MTE4MTc2LDEyLjUwMzkwNTYgMzYuNDc3NTQ2NiwxMy4wMTA2NzExIDM0LjI5MDQ2NTgsMTMuOTgyMzAxMSBMMzMuNzAyMTUxMywxNy4xNDg1OTczIEMzNS43NjQwMDg2LDE2LjA1MDQ3MzYgMzguMjAyMzI0MSwxNS41ODU2MDkyIDQwLjU1NzE1NzIsMTUuNTg1NjA5MiBDNDQuODQ3MDQ4OSwxNS41ODU2MDkyIDQ0LjYzNzU1NTQsMTguOTYyOTkxOCA0NC42Mzc1NTU0LDIyLjIxMzA5MDIgQzM4Ljc0ODEwOTgsMjAuMzk4Njk1NyAzMS4yNjIyNjA3LDIyLjY3OTUzNTggMzEuNDMwODAwNiwyOS44OTc1ODQ1IEMzMS41MTUwNzA1LDMzLjk5MjAyODYgMzQuNTAwNzQ2OSwzNi4xNDU1ODQ0IDM4LjI0NDA2NTMsMzYuMjI5Mzg2NSBDNDAuODA5MTc5NSwzNi4yNzIwNzgxIDQyLjk1NDUxOTEsMzUuMjU5MzM3NyA0NC43MjEwMzc4LDMzLjQ0MzM2MiBMNDUuMDk5ODU4NywzNS42ODE1MTA1IEw1MC4xMDQwNzYxLDM1LjY4MTUxMDUgWiBNNDQuNjM3NTU1NCwzMC45NTIyMjYgQzQzLjM3NTg2ODksMzEuOTY1NzU3MSA0MS44NjEzNzI1LDMyLjY0MDkxNzQgNDAuMjIwODY1LDMyLjY0MDkxNzQgQzM3Ljk0OTUxNDIsMzIuNjQwOTE3NCAzNi41MTkyODc4LDMxLjY3MDA3OCAzNi41MTkyODc4LDI5LjI2NDMyNTMgQzM2LjUxOTI4NzgsMjUuNzE2OTY2NiAzOS44NDEyNTY1LDIzLjM1MzExNSA0NC42Mzc1NTU0LDI0LjYxOTYzMzUgTDQ0LjYzNzU1NTQsMzAuOTUyMjI2IFoiIGlkPSJGaWxsLTE1IiBmaWxsPSIjMTExMTExIj48L3BhdGg+CiAgICAgICAgICAgICAgICAgICAgPHBhdGggZD0iTTEwMS44NDgzNDUsMzUuNjgxNTEwNSBDMTAyLjAyODY5OCwzNS4yMjYxMzMxIDEwMi4wMzQ5OTksMzQuMTU4MDUxNiAxMDIuMDUzMTEzLDMyLjk0MjEzMDYgQzEwMi4wNjcyODksMzIuMDA2MDc2OSAxMDIuMDY3Mjg5LDMwLjg4MjY1NDUgMTAyLjA2NzI4OSwyOS41NTkyMTM4IEwxMDIuMDY3Mjg5LDIwLjY5NDM3NDggQzEwMi4wNjcyODksMTcuNjU1MzYyOSAxMDEuMTQxODk1LDE2LjI2MDc2OTUgOTguOTExNDk3NSwxNi4yNjA3Njk1IEM5Ny4xODgyOTUyLDE2LjI2MDc2OTUgOTUuMTY4OTY2NywxNy40ODUzODY5IDkzLjU3MTc3NTUsMTguOTIxMDkwOCBMOTMuNTcxNzc1NSwzMC4wNjUxODg3IEM5My41NzE3NzU1LDMxLjM0Mjc3NTQgOTMuNTkyMjUyMywzMi41MjE1Mzg5IDkzLjY0MDI5NDEsMzMuNDk3MTIxOCBDOTMuNjg5MTIzNCwzNC40NTc2ODM2IDkzLjc2MDAwNDcsMzUuMjE5ODA4NCA5My44NjQ3NTE0LDM1LjY4MTUxMDUgTDg4LjM1NTcwMiwzNS42ODE1MTA1IEM4OC41NjUxOTU1LDM0Ljc1MTc4MTYgODguNjA3NzI0MywzMi44OTYyNzY2IDg4LjYwNzcyNDMsMzAuMjM1MTY0NyBMODguNjA3NzI0MywxOC43MDkyMTM4IEM4OC42MDc3MjQzLDE1Ljg4MjA3ODggODguMTU0MDg0MiwxNC43NDA0NzI5IDg3LjMwNTg3MTcsMTQuMTkzMzg3NSBDODkuMjY1MzQ0OSwxMy4yMDUxNTUyIDkwLjQ2NzE3NjEsMTIuNzE0OTkyIDkxLjM2MTg1NTIsMTIuNzE0OTkyIEM5Mi45ODk3NjE2LDEyLjcxNDk5MiA5My4zNTkxMzE3LDE0LjE1NTQzOTQgOTMuNDAxNjYwNSwxNS45NjY2NzE1IEM5NS4zMzc1MDY2LDEzLjk4MjMwMTEgOTguMDcxMTYwNywxMi40NjEyMTM5IDEwMC42MzU0ODcsMTIuNDYxMjEzOSBDMTAzLjE1OTY0OCwxMi40NjEyMTM5IDEwNS4wMTEyMjQsMTMuMzQ4MjUxMiAxMDYuMTQ1MzI0LDE1LjE2MjY0NTcgQzEwNi4zOTg5MjIsMTUuNTg3MTkwMyAxMDYuNTk4OTY0LDE2LjEyNzE2MDQgMTA2Ljc0NjI0LDE2Ljc4ODg4MDggQzEwNi45NjY3NTksMTcuNzczOTUwNyAxMDcuMDcyMjk0LDE5LjAyNzgxOTkgMTA3LjA3MjI5NCwyMC41Njc4ODExIEwxMDcuMDcyMjk0LDI5Ljk4MjE3NzIgQzEwNy4wNzIyOTQsMzMuNzA3NDE3NyAxMDcuMjMwNTk1LDM1LjI2NjQ1MjkgMTA3LjQwNzc5OCwzNS42ODE1MTA1IEwxMDEuODQ4MzQ1LDM1LjY4MTUxMDUgWiIgaWQ9IkZpbGwtMTciIGZpbGw9IiMxMTExMTEiPjwvcGF0aD4KICAgICAgICAgICAgICAgICAgICA8cGF0aCBkPSJNNjUuNTcwNTI1NiwxNi40NzMxMjA4IEM2NS4xOTMyNzk3LDE2LjQzMDQyOTIgNjQuODE1MjQ2MywxNi40MzA0MjkyIDY0LjMwOTYyNjYsMTYuNDMwNDI5MiBDNjIuNzExNjQ3OSwxNi40MzA0MjkyIDYxLjExMzY2OTIsMTcuMjc1NTY1NCA1OS41NTgyMTkyLDE5LjA0ODA1ODkgTDU5LjU1ODIxOTIsMzAuNDA0MDMzOCBDNTkuNTU4MjE5MiwzMy43Mzg3MjQ5IDU5LjY4NzM4MDYsMzUuMjk2OTY5NSA1OS44NTExOTUxLDM1LjY4MTE5NDMgTDU0LjM0MjkzMzIsMzUuNjgxMTk0MyBDNTQuNDIxNjkwMiwzNS4zMzMzMzY1IDU0LjQ3NjgyLDM0LjkwMjQ2NzIgNTQuNTEzODM1OCwzNC40MDQzOTgxIEM1NC41OTQxNjc5LDMzLjMyOTk5MiA1NC41OTQxNjc5LDMxLjk0NTY3NjIgNTQuNTk0MTY3OSwzMC40NDUxNDQzIEw1NC41OTQxNjc5LDE4LjcwOTY4ODEgQzU0LjU5NDE2NzksMTYuMTMzOTU5NSA1NC4xNzI4MTgyLDE0LjcxMDkwNSA1My4yODM2NTIxLDE0LjE5MzA3MTMgQzU0Ljg2MjcyOTIsMTMuMzYxMzc1IDU2LjM2NTQxMiwxMi43MTQ2NzU4IDU3LjMzNDEyMjYsMTIuNzE0Njc1OCBDNTkuMDE2MzcxMywxMi43MTQ2NzU4IDU5LjM0NjM2MywxNC4yNzY4NzM0IDU5LjM0NjM2MywxNi4wMDgyNTYzIEM2MC45MDMzODgxLDEzLjY0MzYxNDEgNjIuODM3NjU5LDEyLjQ2MDg5NzcgNjUuMDY2NDgxLDEyLjQ2MDg5NzcgQzY1LjQ4NzA0MzIsMTIuNDYwODk3NyA2NS45MDc2MDU0LDEyLjUwMzU4OTMgNjYuMjg3MjEzOSwxMi41ODg5NzI2IEw2NS41NzA1MjU2LDE2LjQ3MzEyMDggWiIgaWQ9IkZpbGwtMTkiIGZpbGw9IiMxMTExMTEiPjwvcGF0aD4KICAgICAgICAgICAgICAgICAgICA8cGF0aCBkPSJNNzguNzIyMzA4LDMwLjk1MTkwOTggQzc3LjQ2MTQwOTEsMzEuOTY1NDQwOCA3NS45NDc3MDAzLDMyLjY0MTM5MTcgNzQuMzA3MTkyOCwzMi42NDEzOTE3IEM3Mi4wMzU4NDIsMzIuNjQxMzkxNyA3MC42MDY0MDMyLDMxLjY2OTc2MTcgNzAuNjA2NDAzMiwyOS4yNjQwMDkgQzcwLjYwNjQwMzIsMjUuNzE3NDQxIDczLjkyODM3MTgsMjMuMzUzNTg5MyA3OC43MjIzMDgsMjQuNjE5MzE3MyBMNzguNzIyMzA4LDMwLjk1MTkwOTggWiBNODQuMTkwNDAzOCwzNS42ODExOTQzIEM4My44MTc4ODM0LDM0Ljg1NjYxMzIgODMuNzcwNjI5MiwzMi4yNjExMTk5IDgzLjc3MDYyOTIsMzAuNDg5NDE3MSBMODMuNzcwNjI5MiwyMC44MjA1NTIzIEM4My43NzA2MjkyLDE0LjUzMDY1MTQgODAuOTc3MTE5OCwxMi41MDM1ODkzIDc0LjkxOTkyMiwxMi41MDM1ODkzIEM3Mi41MjMzNDc2LDEyLjUwMzU4OTMgNzAuNTYzODc0NCwxMi45ODU4NDY3IDY4LjM3NjAwNjEsMTMuOTU2Njg2MSBMNjcuNzg3NjkxNiwxNy4xNDgyODExIEM2OC41NjM0NDc2LDE2LjczNDgwNDcgNjkuMzkzNTQ2LDE2LjQxMDY2NDUgNzAuMjUyNzg0NCwxNi4xNjc5NTQ3IEM3MS42NzM1NiwxNS43NjU1NDY1IDczLjE3NDY2NzcsMTUuNTg1MjkyOSA3NC42NDM0ODUsMTUuNTg1MjkyOSBDNzguOTMzMzc2NywxNS41ODUyOTI5IDc4LjcyMjMwOCwxOC45NjI2NzU2IDc4LjcyMjMwOCwyMi4yMTI3NzQgQzcyLjgzNDQzNzYsMjAuMzk5MTcwMSA2NS4zNDc4MDA5LDIyLjY3OTIxOTYgNjUuNTE3OTE1OSwyOS44OTcyNjgzIEM2NS42MDA2MTA3LDMzLjk5MjUwMjkgNjguNTg3MDc0NywzNi4xNDUyNjgxIDcyLjMzMDM5MzEsMzYuMjI5ODYwOCBDNzQuODk0NzE5NywzNi4yNzE3NjE5IDc3LjA2NTI2MTYsMzUuMjU5MDIxNCA3OC44MzE3ODAyLDMzLjQ0MzA0NTggQzc4LjgzMTc4MDIsMzMuNDQzMDQ1OCA3OC45NDM2MTUxLDM0Ljg3NjM3NzkgNzkuMTg1Mzk5LDM1LjY4MTE5NDMgTDg0LjE5MDQwMzgsMzUuNjgxMTk0MyBaIiBpZD0iRmlsbC0yMSIgZmlsbD0iIzExMTExMSI+PC9wYXRoPgogICAgICAgICAgICAgICAgICAgIDxwYXRoIGQ9Ik0yNi40NTkzNDYyLDguMTEzNzAzMzcgQzIzLjkzNTE4NTYsNy4wOTkzODE3NCAyMS4yODU4MDE0LDYuNTkzNDA2ODEgMTguNTk0Njc2LDYuNTkzNDA2ODEgQzE1LjE0NTkwODcsNi41OTM0MDY4MSAxMi40NDQ1NDQ5LDcuODE4MDI0MjYgMTAuMTczMTk0MiwxMC4xODEwODUzIEM3LjkwMjYzMDk5LDEyLjU4OTIwOTggNi43NjY5NTU2MSwxNS42NzAxMjI4IDYuNzY2OTU1NjEsMTkuMzg1ODc2MiBDNi43NjY5NTU2MSwyMy40Mzc2Mjg2IDcuNzc1ODMyMjgsMjYuNjg4NTE3NiA5LjgzNjkwMTk2LDI5LjA1MjM2OTIgQzExLjg1NjIzMDQsMzEuNDE3ODAyIDE0LjUxNDI3NzksMzIuNjQwODM4MyAxOC4xMzE1ODUxLDMyLjY0MDgzODMgQzIwLjAyNDkwMjQsMzIuNjQwODM4MyAyMS41ODAzNTI0LDMyLjM4Nzg1MDggMjIuODgzNzgwMSwzMS44ODE4NzU5IEwyMi44ODM3ODAxLDIzLjkwMzI4MzcgQzIyLjg4Mzc4MDEsMjMuMzU0NjE3MSAyMi44NzUxMTY5LDIyLjg1MTAxMzkgMjIuODU3NzkwMywyMi4zODI5ODcxIEwyMC4yMjMzNywyMi4zODI5ODcxIEwxOC42MTEyMTUsMjIuMzgyOTg3MSBDMTguNTUyMTQ3MywyMC45Njk0MTk2IDE4LjM2Nzg1NiwxOS40ODc4NjE4IDE4LjE0ODkxMTYsMTguNjI2MTIzMiBMMjguNDc3ODg3MSwxOC45ODEwOTYzIEMyOC4wOTgyNzg1LDIwLjIwNDkyMzEgMjguMDU3MzI0OSwyMS43MDYyNDU2IDI4LjA1NzMyNDksMjQuMjgxMTgzNyBMMjguMDU3MzI0OSwyOC4zNzcyMDg5IEMyOC4wNTczMjQ5LDMxLjI0NzgyNjEgMjguMjI1MDc3MiwzMy4xOTAyOTU1IDI4LjQ3Nzg4NzEsMzQuMTYxOTI1NSBDMjQuOTAyMzIxLDM1LjYzODczOTggMjEuMzI3NTQyNiwzNi4zOTkyODM0IDE3LjcxMTAyMjksMzYuMzk5MjgzNCBDMTIuMzY4OTM4MywzNi4zOTkyODM0IDguMjQ3NTg2NDgsMzQuOTIwODg3OSA1LjI2MTkxMDA4LDMxLjk2NTY3OCBDMi4zMTc5NzQ4OCwyOS4wMTEyNTg3IDAuNjA4MTYxMjU0LDI1LjA1MzU4NjEgMC42MDgxNjEyNTQsMTkuOTg4MzAyNiBDMC42MDgxNjEyNTQsMTQuODc4NzQ2NCAyLjQ0Mzk4NjAyLDEwLjY4ODY0MTQgNS43MjQyMTM0NSw3LjQzNzc1MjQ4IEM4Ljk2MzQ4NzI2LDQuMjI4NzY0NTcgMTMuMjUyNTkxNCwyLjYyNDY2NTkxIDE4LjU5NDY3NiwyLjYyNDY2NTkxIEMyMy4xNzM2MDU3LDIuNjI0NjY1OTEgMjQuODIxOTg4OSwzLjIxMjA3MTE5IDI3LjI2MTg3OTYsNC4wNTU2MjYyOCBMMjYuNDU5MzQ2Miw4LjExMzcwMzM3IiBpZD0iRmlsbC0yMyIgZmlsbD0iIzExMTExMSI+PC9wYXRoPgogICAgICAgICAgICAgICAgPC9nPgogICAgICAgICAgICA8L2c+CiAgICAgICAgPC9nPgogICAgPC9nPgo8L3N2Zz4="};
+function bankLogo(name){const key=Object.keys(bankLogos).find(k=>k.toLocaleLowerCase('tr')===name.trim().toLocaleLowerCase('tr'));return key?bankLogos[key]:null}
+
+/* ---------- Simgeler ---------- */
+const SVG=p=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${p}</svg>`;
+const ICON={
+  eye:SVG('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>'),
+  eyeOff:SVG('<path d="M3 3l18 18"/><path d="M10.6 5.1A10.7 10.7 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4.2M6.6 6.6C3.8 8.4 2 12 2 12s3.5 7 10 7c1.9 0 3.5-.6 4.9-1.4"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>'),
+  copy:SVG('<rect x="9" y="9" width="11" height="11" rx="1"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>'),
+  edit:SVG('<path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/>')
+};
+
+/* ---------- Tarih ---------- */
+const now=new Date();now.setHours(0,0,0,0);
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const parseDay=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+function past(n){const d=new Date(now);d.setDate(d.getDate()-n);return iso(d)}
+/* Ay ekler; hedef ayda o gün yoksa ayın son gününe sabitler (31 Ağu + 6 ay = 28/29 Şub). */
+function addMonths(date,n){const d=new Date(date.getFullYear(),date.getMonth()+n,1);const lastDay=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(date.getDate(),lastDay));return d}
+const fmt=d=>d.toLocaleDateString('tr-TR',{day:'numeric',month:'short',year:'numeric'});
+
+/* ---------- Veri (yalnızca bellek) ---------- */
+let people=['Mustafa','Annem','Babam'];
+let records=[
+  {id:1,name:'Akbank',person:'Mustafa',user:'mustafa.demo',pass:'Ornek!2026-A',last:past(190),months:6,ink:'#54769a',symbol:'Ö'},
+  {id:2,name:'İş Bankası',person:'Annem',user:'annem.demo',pass:'Demo!Aile-42',last:past(165),months:6,ink:'#b97870',symbol:'G'},
+  {id:3,name:'e-Devlet (örnek)',person:'Babam',user:'baba.demo',pass:'Ornek!Baba-9',last:past(35),months:0,ink:'#a96b65',symbol:'e'},
+  {id:4,name:'E-posta',person:'Mustafa',user:'mustafa@example.com',pass:'Demo!Posta-7',last:past(50),months:6,ink:'#8879a6',symbol:'@'},
+  {id:5,name:'Sigorta Portalı',person:'Babam',user:'baba.sigorta',pass:'Ornek!Sig-26',last:past(75),months:3,ink:'#ac915c',symbol:'S'},
+  {id:6,name:'İnternet Aboneliği',person:'Annem',user:'ev.internet',pass:'Demo!Ev-123',last:past(80),months:12,ink:'#63896a',symbol:'↗'},
+  {id:7,name:'Garanti BBVA',person:'Mustafa',user:'mustafa.ornek',pass:'Demo!Garanti-26',last:past(140),months:6,ink:'#63896a',symbol:'G'}
+];
+let person='Tümü',filter='all',editing=null;
+const visible=new Set();
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+
+function due(r){return r.months?addMonths(parseDay(r.last),Number(r.months)):null}
+function days(r){const d=due(r);return d?Math.round((d-now)/86400000):Infinity}
+function status(r){const d=days(r);return d<0?'late':d<=30?'soon':'ok'}
+function byUrgency(a,b){const da=days(a),db=days(b);if(da!==db)return da<db?-1:1;return a.name.localeCompare(b.name,'tr')}
+
+/* ---------- Görünüm ---------- */
+function render(){
+  const scoped=records.filter(r=>person==='Tümü'||r.person===person);
+  $('total').textContent=scoped.length;
+  $('totalNote').textContent=person==='Tümü'?'Ailenin tüm hesapları':`${person} hesapları`;
+  $('soon').textContent=scoped.filter(r=>status(r)==='soon').length;
+  $('late').textContent=scoped.filter(r=>status(r)==='late').length;
+
+  $('people').innerHTML=
+    `<button type="button" class="person" data-person="all" aria-pressed="${person==='Tümü'}">Tümü</button>`+
+    people.map((p,i)=>`<button type="button" class="person" data-person="${i}" aria-pressed="${p===person}">${esc(p)}</button>`).join('');
+  $('people').classList.toggle('many',people.length+1>4);
+
+  document.querySelectorAll('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.filter===filter));
+
+  const q=$('search').value.toLocaleLowerCase('tr');
+  const rows=scoped
+    .filter(r=>(filter==='all'||status(r)===filter)&&(r.name+' '+r.user).toLocaleLowerCase('tr').includes(q))
+    .sort(byUrgency);
+
+  $('cards').innerHTML=rows.length?rows.map(card).join(''):'<div class="empty">Bu filtreye uygun kayıt bulunamadı.</div>';
+}
+
+function card(r){
+  const s=status(r),d=days(r),shown=visible.has(r.id),n=esc(r.name),logo=bankLogo(r.name);
+  const label=d===Infinity?'Düzenli değişim yok':d<0?`${-d} gün gecikti`:d===0?'Bugün değiştir':d<=30?`${d} gün sonra değiştir`:'Güncel';
+  const mark=logo?`<img class="bank-logo${r.name==='Akbank'?' square':''}" src="${logo}" alt="${n} logosu">`:esc(r.symbol);
+  return `<article class="card">
+    <div class="card-head">
+      <div class="institution" style="color:${r.ink}">${mark}</div>
+      <div><h3>${n}</h3><div class="owner">${esc(r.person)} hesabı</div></div>
+      <button type="button" class="icon" data-action="edit" data-id="${r.id}" aria-label="${n} kaydını düzenle" title="Kaydı düzenle">${ICON.edit}</button>
+    </div>
+    <div class="badge ${s}">● &nbsp;${label}</div>
+    <div class="label">KULLANICI ADI</div>
+    <div class="username">${esc(r.user)}</div>
+    <div class="label">ŞİFRE</div>
+    <div class="password">
+      <code>${shown?esc(r.pass):'<span aria-hidden="true">••••••••••••</span><span class="sr-only">Gizli</span>'}</code>
+      <button type="button" class="icon" data-action="toggle" data-id="${r.id}" aria-pressed="${shown}" aria-label="${n} şifresini ${shown?'gizle':'göster'}" title="${shown?'Gizle':'Göster'}">${shown?ICON.eyeOff:ICON.eye}</button>
+      <button type="button" class="icon" data-action="copy" data-id="${r.id}" aria-label="${n} şifresini kopyala" title="Kopyala">${ICON.copy}</button>
+    </div>
+    <div class="dates"><div>Son değişiklik<b>${fmt(parseDay(r.last))}</b></div><div>Sonraki değişiklik<b>${due(r)?fmt(due(r)):'Süresiz'}</b></div></div>
+    ${r.draft?`<div class="draft-note">Yeni şifre taslakta bekliyor. Kayıttaki şifre, banka onayı girilene kadar değişmez.</div>`:''}
+    <button type="button" class="renew${r.draft?' pending':''}" data-action="renew" data-id="${r.id}">${r.draft?'↻ &nbsp; Taslağı tamamla':'↻ &nbsp; Şifreyi güncelle'}</button>
+  </article>`;
+}
+
+let toastTimer;
+function toast(t){const e=$('toast');e.textContent=t;e.style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.style.display='none',2600)}
+
+async function copyPass(id){
+  try{await navigator.clipboard.writeText(records.find(r=>r.id===id).pass);toast('Örnek şifre kopyalandı')}
+  catch{toast('Kopyalama izni yok. Göz simgesiyle şifreyi görebilirsin.')}
+}
+
+/* ---------- Olaylar: ana ekran ---------- */
+$('people').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  person=b.dataset.person==='all'?'Tümü':people[Number(b.dataset.person)];render();
+});
+document.querySelector('.filters').addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(b){filter=b.dataset.filter;render()}});
+$('search').addEventListener('input',render);
+$('cards').addEventListener('click',e=>{
+  const b=e.target.closest('[data-action]');if(!b)return;
+  const id=Number(b.dataset.id),a=b.dataset.action;
+  if(a==='edit')openForm(id);
+  else if(a==='renew')openRenew(id);
+  else if(a==='copy')copyPass(id);
+  else if(a==='toggle'){visible.has(id)?visible.delete(id):visible.add(id);render();document.querySelector(`[data-action="toggle"][data-id="${id}"]`)?.focus()}
+});
+$('newBtn').addEventListener('click',()=>openForm());
+$('manageBtn').addEventListener('click',()=>openPeople());
+
+/* ---------- Kayıt formu ---------- */
+const modal=$('modal'),form=$('form');
+
+function openForm(id){
+  resetGeneratedCopy();
+  editing=id||null;
+  form.reset();
+  form.elements.person.innerHTML=people.map(p=>`<option>${esc(p)}</option>`).join('');
+  if(person!=='Tümü')form.elements.person.value=person;
+  form.elements.last.value=iso(now);
+  $('formTitle').textContent=id?'Kaydı düzenle':'Yeni kayıt';
+  $('deleteBtn').hidden=!id;
+  const r=id?records.find(x=>x.id===id):null;
+  if(r)['name','person','user','pass','last','months'].forEach(k=>form.elements[k].value=r[k]);
+  loadRules(r?r.rules:null);
+  modal.showModal();
+}
+
+$('cancelBtn').addEventListener('click',()=>modal.close());
+$('deleteBtn').addEventListener('click',()=>{
+  const r=records.find(x=>x.id===editing);if(!r)return;
+  if(!confirm(`"${r.name}" (${r.person}) kaydı silinsin mi?\nBu işlem geri alınamaz.`))return;
+  records=records.filter(x=>x.id!==editing);visible.delete(editing);
+  modal.close();render();toast('Kayıt silindi');
+});
+
+/* Kural: {type, min, max, upper, lower, digit, symbol, symbols}. min = max ise tam uzunluk. */
+function readRules(){
+  const f=form.elements,sel=f.ruleLength.value;let min,max;
+  if(sel==='range'){min=Number(f.rangeMin.value);max=Number(f.rangeMax.value)}
+  else{min=max=Number(sel==='custom'?f.customLength.value:sel)}
+  return {type:f.ruleType.value,min,max,upper:f.reqUpper.checked,lower:f.reqLower.checked,digit:f.reqDigit.checked,symbol:f.reqSymbol.checked,symbols:[...new Set(f.allowedSymbols.value)].join('')};
+}
+function loadRules(r){
+  const f=form.elements;
+  r=r||{type:'unset',min:8,max:8,upper:true,lower:true,digit:true,symbol:true,symbols:'!@#*'};
+  f.ruleType.value=r.type;
+  if(r.min!==r.max){f.ruleLength.value='range';f.rangeMin.value=r.min;f.rangeMax.value=r.max}
+  else{f.ruleLength.value=[6,8,12,16].includes(r.min)?String(r.min):'custom';f.customLength.value=r.min}
+  f.reqUpper.checked=r.upper;f.reqLower.checked=r.lower;f.reqDigit.checked=r.digit;f.reqSymbol.checked=r.symbol;f.allowedSymbols.value=r.symbols;
+  rulesChanged(false);
+}
+function showFeedback(message,ok=false){const el=$('ruleFeedback');el.textContent=message;el.style.color=ok?'#23664c':'#a34532'}
+function rulesChanged(check=true){
+  const r=readRules(),sel=form.elements.ruleLength.value;
+  $('ruleDetails').hidden=r.type==='unset';
+  $('customLengthRow').hidden=sel!=='custom';
+  $('rangeRow').hidden=sel!=='range';
+  $('requiredTypes').hidden=r.type==='numeric';
+  $('symbolsRow').hidden=r.type!=='special';
+  $('reqSymbolRow').hidden=r.type!=='special';
+  showFeedback('');
+  if(check&&r.type!=='unset'){
+    const ruleErr=ruleError(r);
+    if(ruleErr)showFeedback(ruleErr);
+    else if(form.elements.pass.value){const err=checkPassword(form.elements.pass.value,r);showFeedback(err||'Şifre bu kurallara uygun.',!err)}
+  }
+}
+form.querySelector('.rules').addEventListener('input',()=>rulesChanged());
+form.querySelector('.rules').addEventListener('change',()=>rulesChanged());
+
+const CHAR_UPPER='ABCDEFGHIJKLMNOPQRSTUVWXYZ',CHAR_LOWER='abcdefghijklmnopqrstuvwxyz',CHAR_DIGIT='0123456789';
+function ruleError(r){
+  if(r.type==='unset')return '';
+  if(!['numeric','alnum','special'].includes(r.type))return 'Karakter türünü seç.';
+  if(![r.min,r.max].every(n=>Number.isInteger(n)&&n>=4&&n<=64))return 'Uzunluk 4–64 arasında tam sayı olmalı.';
+  if(r.min>r.max)return 'En az uzunluk, en çok uzunluktan büyük olamaz.';
+  if(r.type==='special'&&(!r.symbols||!/^[!-\/:-@[-`{-~]+$/.test(r.symbols)))return 'Özel karakter listesine yalnızca işaret yaz; harf, rakam veya boşluk kullanma.';
+  const count=r.type==='numeric'?1:Number(r.upper)+Number(r.lower)+Number(r.digit)+Number(r.type==='special'&&r.symbol);
+  if(count>r.min)return 'Uzunluk zorunlu karakterlerin sayısından az olamaz.';
+  return '';
+}
+function checkPassword(pass,r){
+  const err=ruleError(r);if(err||r.type==='unset')return err;
+  if(pass.length<r.min||pass.length>r.max)return r.min===r.max?`Şifre tam ${r.min} karakter olmalı.`:`Şifre ${r.min}–${r.max} karakter arasında olmalı.`;
+  const allowed=r.type==='numeric'?CHAR_DIGIT:CHAR_UPPER+CHAR_LOWER+CHAR_DIGIT+(r.type==='special'?r.symbols:'');
+  if([...pass].some(c=>!allowed.includes(c)))return r.type==='numeric'?'Şifre yalnızca rakamlardan oluşmalı.':'Şifrede izin verilmeyen karakter var.';
+  if(r.type!=='numeric'){
+    if(r.upper&&!/[A-Z]/.test(pass))return 'En az bir büyük harf gerekli.';
+    if(r.lower&&!/[a-z]/.test(pass))return 'En az bir küçük harf gerekli.';
+    if(r.digit&&!/[0-9]/.test(pass))return 'En az bir rakam gerekli.';
+    if(r.type==='special'&&r.symbol&&![...pass].some(c=>r.symbols.includes(c)))return 'En az bir izin verilen özel karakter gerekli.';
+  }
+  return '';
+}
+function randomIndex(n){const a=new Uint32Array(1),limit=Math.floor(4294967296/n)*n;do{crypto.getRandomValues(a)}while(a[0]>=limit);return a[0]%n}
+function createPassword(r){
+  const err=ruleError(r);if(err)throw Error(err);
+  if(r.type==='unset')throw Error('Üretmek için önce kurumun karakter türünü seç.');
+  const pool=r.type==='numeric'?CHAR_DIGIT:CHAR_UPPER+CHAR_LOWER+CHAR_DIGIT+(r.type==='special'?r.symbols:'');
+  const required=r.type==='numeric'?[]:[...(r.upper?[CHAR_UPPER]:[]),...(r.lower?[CHAR_LOWER]:[]),...(r.digit?[CHAR_DIGIT]:[]),...(r.type==='special'&&r.symbol?[r.symbols]:[])];
+  const result=required.map(chars=>chars[randomIndex(chars.length)]);
+  while(result.length<r.max)result.push(pool[randomIndex(pool.length)]);
+  for(let i=result.length-1;i>0;i--){const j=randomIndex(i+1);[result[i],result[j]]=[result[j],result[i]]}
+  return result.join('');
+}
+function generate(){
+  resetGeneratedCopy();
+  try{form.elements.pass.value=createPassword(readRules());showFeedback('Şifre seçtiğin kurallara göre üretildi.',true)}
+  catch(e){showFeedback(e.message)}
+}
+$('generateBtn').addEventListener('click',generate);
+
+let copyResetTimer,copyAttempt=0;
+function resetGeneratedCopy(){copyAttempt++;clearTimeout(copyResetTimer);const b=$('generatedCopy');b.classList.remove('copied');b.textContent='Kopyala';$('copyStatus').textContent=''}
+async function copyGenerated(){
+  const pass=form.elements.pass.value;
+  if(!pass){showFeedback('Kopyalamak için önce şifre üret veya yaz.');return}
+  const attempt=++copyAttempt;
+  try{
+    if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(pass)}
+    else{const input=form.elements.pass,start=input.selectionStart,end=input.selectionEnd;input.focus();input.select();const copied=document.execCommand('copy');input.setSelectionRange(start??0,end??0);if(!copied)throw Error('copy failed')}
+    if(attempt!==copyAttempt||form.elements.pass.value!==pass)return;
+    clearTimeout(copyResetTimer);
+    const b=$('generatedCopy');b.classList.remove('copied');void b.offsetWidth;b.classList.add('copied');b.textContent='✓ Kopyalandı';
+    $('copyStatus').textContent='Şifre panoya kopyalandı.';
+    copyResetTimer=setTimeout(resetGeneratedCopy,1800);
+  }catch{
+    if(attempt!==copyAttempt)return;
+    resetGeneratedCopy();showFeedback('Kopyalama izni yok. Şifre alanını seçip elle kopyalayabilirsin.');
+  }
+}
+$('generatedCopy').addEventListener('click',copyGenerated);
+form.elements.pass.addEventListener('input',()=>{resetGeneratedCopy();rulesChanged(true)});
+modal.addEventListener('close',resetGeneratedCopy);
+
+form.onsubmit=e=>{
+  e.preventDefault();
+  const rules=readRules(),err=checkPassword(form.elements.pass.value,rules);
+  if(err){showFeedback(err);form.elements.pass.focus();return}
+  const data={};['name','person','user','pass','last','months'].forEach(k=>data[k]=form.elements[k].value);
+  data.months=Number(data.months);data.rules=rules;
+  if(editing){Object.assign(records.find(r=>r.id===editing),data);visible.delete(editing)}
+  else records.push({...data,id:Date.now(),ink:'#63896a',symbol:data.name.trim()[0].toLocaleUpperCase('tr')});
+  modal.close();render();
+  toast(`${editing?'Kayıt güncellendi':'Kayıt eklendi'} · Yalnızca bu demo oturumunda`);
+};
+
+/* ---------- Şifre yenileme: üret → bankada değiştir → onaylayınca kayda geçir ----------
+   Yeni şifre r.draft'ta durur. r.pass ve r.last yalnızca "Kaydı güncelle" ile değişir. */
+const renewModal=$('renewModal');let renewing=null;
+const DEFAULT_RULE={type:'special',min:12,max:12,upper:true,lower:true,digit:true,symbol:true,symbols:'!@#*'};
+const activeRule=r=>r.rules&&r.rules.type!=='unset'?r.rules:null;
+function ruleSummary(rule){
+  if(!rule)return 'Bu kayıtta kurum kuralı yok; Üret varsayılan olarak 12 karakter (harf + rakam + !@#*) üretir.';
+  const len=rule.min===rule.max?`${rule.min} karakter`:`${rule.min}–${rule.max} karakter`;
+  const kind={numeric:'yalnızca rakam',alnum:'harf + rakam',special:`harf + rakam + ${rule.symbols}`}[rule.type];
+  return `Kurum kuralı: ${len}, ${kind}.`;
+}
+function renewMsg(t,ok=false){const el=$('renewFeedback');el.textContent=t;el.style.color=ok?'#23664c':'#a34532'}
+function draftError(r,draft){
+  if(!draft)return 'Önce yeni şifreyi üret ya da yaz.';
+  const rule=activeRule(r);
+  if(rule){const err=checkPassword(draft,rule);if(err)return err}
+  if(draft===r.pass)return 'Yeni şifre mevcut şifreyle aynı.';
+  return '';
+}
+function syncRenew(){
+  const r=records.find(x=>x.id===renewing);if(!r)return;
+  const err=draftError(r,$('draftPass').value);
+  $('confirmStep').setAttribute('aria-disabled',!!err);
+  $('renewConfirm').disabled=!!err||!$('bankConfirmed').checked;
+}
+function openRenew(id){
+  const r=records.find(x=>x.id===id);if(!r)return;
+  renewing=id;
+  $('renewFor').textContent=`${r.name} · ${r.person}`;
+  $('draftPass').value=r.draft||'';
+  $('draftRule').textContent=ruleSummary(activeRule(r));
+  $('currentPass').textContent=r.pass;
+  $('bankConfirmed').checked=false;
+  renewMsg(r.draft?'Taslak bulundu. Bankada değiştirdiysen 3. adıma geç.':'',true);
+  syncRenew();
+  renewModal.showModal();
+}
+function saveDraft(){
+  const r=records.find(x=>x.id===renewing);if(!r)return;
+  const v=$('draftPass').value;
+  if(v)r.draft=v;else delete r.draft;
+  $('bankConfirmed').checked=false;
+  syncRenew();
+}
+async function copyText(text,btn,label){
+  try{
+    if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(text);
+    else{const t=document.createElement('textarea');t.value=text;t.setAttribute('readonly','');t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();const ok=document.execCommand('copy');t.remove();if(!ok)throw Error()}
+    btn.classList.remove('copied');void btn.offsetWidth;btn.classList.add('copied');btn.textContent='✓ Kopyalandı';
+    $('renewStatus').textContent=`${label} panoya kopyalandı.`;
+    setTimeout(()=>{btn.classList.remove('copied');btn.textContent='Kopyala'},1800);
+  }catch{renewMsg('Kopyalama izni yok. Şifreyi seçip elle kopyalayabilirsin.')}
+}
+$('draftGenerate').addEventListener('click',()=>{
+  const r=records.find(x=>x.id===renewing);if(!r)return;
+  if(r.draft&&!confirm('Taslakta bekleyen bir şifre var. Bankada onu kullandıysan yenisini üretme.\nYine de yeni şifre üretilsin mi?'))return;
+  try{$('draftPass').value=createPassword(activeRule(r)||DEFAULT_RULE);saveDraft();renewMsg('Yeni şifre taslağa kaydedildi. Kayıttaki şifre değişmedi.',true)}
+  catch(e){renewMsg(e.message)}
+});
+$('draftPass').addEventListener('input',()=>{saveDraft();renewMsg('')});
+$('draftCopy').addEventListener('click',()=>{const v=$('draftPass').value;v?copyText(v,$('draftCopy'),'Yeni şifre'):renewMsg('Önce yeni şifreyi üret ya da yaz.')});
+$('currentCopy').addEventListener('click',()=>{const r=records.find(x=>x.id===renewing);if(r)copyText(r.pass,$('currentCopy'),'Mevcut şifre')});
+$('bankConfirmed').addEventListener('change',()=>{
+  const r=records.find(x=>x.id===renewing);
+  const err=r&&draftError(r,$('draftPass').value);
+  if(err&&$('bankConfirmed').checked){renewMsg(err);$('bankConfirmed').checked=false}
+  syncRenew();
+});
+$('renewConfirm').addEventListener('click',()=>{
+  const r=records.find(x=>x.id===renewing);if(!r)return;
+  const draft=$('draftPass').value,err=draftError(r,draft);
+  if(err||!$('bankConfirmed').checked){renewMsg(err||'Önce banka onayını işaretle.');return}
+  r.pass=draft;r.last=iso(now);delete r.draft;visible.delete(r.id);
+  renewModal.close();
+  toast('Şifre ve değişim tarihi güncellendi · Yalnızca bu demo oturumunda');
+});
+$('draftDiscard').addEventListener('click',()=>{
+  const r=records.find(x=>x.id===renewing);if(!r)return;
+  if(r.draft&&!confirm('Taslak silinsin mi? Kayıttaki mevcut şifre olduğu gibi kalır.'))return;
+  delete r.draft;$('draftPass').value='';renewModal.close();toast('Taslak silindi; mevcut şifre korunuyor');
+});
+$('renewLater').addEventListener('click',()=>renewModal.close());
+renewModal.addEventListener('close',()=>{renewing=null;render()});
+
+/* ---------- Aile üyeleri ---------- */
+const peopleModal=$('peopleModal'),peopleForm=$('peopleForm');
+function peopleMsg(t,ok=false){const el=$('peopleFeedback');el.textContent=t;el.style.color=ok?'#23664c':'#a34532'}
+function nameError(name,except=-1){
+  if(!name)return 'Ad boş olamaz.';
+  if(name.toLocaleLowerCase('tr')==='tümü')return '"Tümü" ayrılmış bir ad.';
+  if(people.some((p,i)=>i!==except&&p.toLocaleLowerCase('tr')===name.toLocaleLowerCase('tr')))return 'Bu ad zaten listede.';
+  return '';
+}
+function renderPeople(){
+  $('peopleList').innerHTML=people.map((p,i)=>{
+    const n=records.filter(r=>r.person===p).length,locked=n>0||people.length===1;
+    return `<div class="person-row">
+      <input value="${esc(p)}" maxlength="20" data-rename="${i}" aria-label="${esc(p)} adını değiştir">
+      <span class="count">${n} kayıt</span>
+      <button type="button" class="renew" data-remove="${i}" ${locked?'disabled':''} aria-label="${esc(p)} kişisini kaldır">Kaldır</button>
+    </div>`}).join('');
+}
+function openPeople(){peopleForm.reset();peopleMsg('');renderPeople();peopleModal.showModal()}
+$('peopleList').addEventListener('change',e=>{
+  const i=Number(e.target.dataset.rename);if(Number.isNaN(i))return;
+  const old=people[i],name=e.target.value.trim(),err=nameError(name,i);
+  if(err){peopleMsg(err);e.target.value=old;return}
+  people[i]=name;records.forEach(r=>{if(r.person===old)r.person=name});
+  if(person===old)person=name;
+  peopleMsg(`"${old}" → "${name}" olarak değişti.`,true);renderPeople();render();
+});
+$('peopleList').addEventListener('click',e=>{
+  const b=e.target.closest('[data-remove]');if(!b||b.disabled)return;
+  const name=people[Number(b.dataset.remove)];
+  people.splice(Number(b.dataset.remove),1);
+  if(person===name)person='Tümü';
+  peopleMsg(`"${name}" kaldırıldı.`,true);renderPeople();render();
+});
+peopleForm.onsubmit=e=>{
+  e.preventDefault();
+  const name=peopleForm.elements.newPerson.value.trim(),err=nameError(name);
+  if(err){peopleMsg(err);return}
+  people.push(name);peopleForm.reset();peopleMsg(`"${name}" eklendi.`,true);renderPeople();render();
+};
+$('peopleDone').addEventListener('click',()=>peopleModal.close());
+
+render();
+</script>
+</body>
+</html>
