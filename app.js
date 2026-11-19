@@ -475,7 +475,7 @@ function setMode(mode){
  $('vaultPassword').closest('label').hidden=mode==='recover';$('vaultPassword').required=mode!=='recover';
  $('vaultHeading').textContent={setup:'Yeni kasa oluştur',unlock:'Kasayı aç',recover:'Şifremi unuttum'}[mode];
  $('vaultSubmit').textContent={setup:'Kasayı oluştur',unlock:'Kasayı aç',recover:'Şifreyi yenile'}[mode];
- $('vaultRecoverToggle').hidden=mode==='setup';$('vaultRecoverToggle').textContent=mode==='recover'?'Şifreyle aç':'Şifremi unuttum';
+ $('vaultRecoverToggle').hidden=mode==='setup';$('vaultResetBox').hidden=!vaultEnvelope;$('vaultRecoverToggle').textContent=mode==='recover'?'Şifreyle aç':'Şifremi unuttum';
  authError('');
 }
 function clearSensitiveDOM(){
@@ -541,6 +541,15 @@ $('vaultImport').addEventListener('change',async e=>{
  try{if(file.size>8000000)throw Error('Yedek dosyası çok büyük.');if(persistedBlob&&!$('vaultReplace').checked)throw Error('Önce mevcut kasayı değiştirme kutusunu işaretle.');
   importCandidate=VaultCore.validate(JSON.parse(await file.text()));setMode('unlock');$('vaultSubmit').disabled=false;authError('Yedek seçildi. Yedeğin şifresiyle aç veya Şifremi unuttum ile soruları cevapla.');$('vaultImportCancel').hidden=false;
  }catch(err){authError('Yedek seçilemedi: '+err.message)}finally{e.target.value=''}
+});
+$('vaultResetConfirm').addEventListener('change',()=>{$('vaultResetBtn').disabled=!$('vaultResetConfirm').checked});
+/* Yalnızca bu uygulamanın kasası silinir; aynı adresteki başka uygulamaların verisine dokunulmaz. */
+$('vaultResetBtn').addEventListener('click',()=>{
+ if(!$('vaultResetConfirm').checked||vaultUnlocked)return;
+ try{localStorage.removeItem(STORE)}catch(e){authError('Kasa silinemedi: '+e.message);return}
+ persistedBlob=null;vaultEnvelope=null;importCandidate=null;$('vaultImportCancel').hidden=true;
+ $('vaultResetConfirm').checked=false;$('vaultResetBtn').disabled=true;$('vaultResetBox').open=false;
+ setMode('setup');authError('Eski kasa silindi. Yeni kasa oluşturabilirsin.');
 });
 $('vaultImportCancel').addEventListener('click',()=>{importCandidate=null;$('vaultImportCancel').hidden=true;setMode(vaultEnvelope?'unlock':'setup')});
 ['pointerdown','keydown'].forEach(event=>document.addEventListener(event,resetIdle,{passive:true}));
