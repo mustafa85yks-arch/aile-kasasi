@@ -555,7 +555,11 @@ function initVault(){
   persistedBlob=localStorage.getItem(STORE);if(persistedBlob)vaultEnvelope=VaultCore.validate(JSON.parse(persistedBlob));
   setMode(vaultEnvelope?'unlock':'setup');
  }catch(e){authError('Kasa açılamadı: '+e.message);$('vaultSubmit').disabled=true}
- if('serviceWorker'in navigator&&location.protocol==='https:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
+ if('serviceWorker'in navigator&&location.protocol==='https:'){
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  /* Yeni sürüm gelince kasa kilitliyse sayfayı yenile (açık kasada veri kaybı olmasın diye beklenir). */
+  let reloaded=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!reloaded&&!vaultUnlocked){reloaded=true;location.reload()}});
+ }
 }
 
 initVault();
