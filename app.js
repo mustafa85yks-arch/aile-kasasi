@@ -450,7 +450,7 @@ $('peopleDone').addEventListener('click',()=>peopleModal.close());
 /* ---------- Local encrypted persistence and access ---------- */
 const STORE='aile-kasasi.local.v1';
 let vaultEnvelope=null,vaultKey=null,vaultUnlocked=false,vaultBusy=false,vaultMode='unlock',importCandidate=null;
-let persistedBlob=null,lastSnapshot=null,saveChain=Promise.resolve(),saveFailure=null,idleTimer=null,stagedVault=null,locking=false;
+let persistedBlob=null,lastSnapshot=null,saveChain=Promise.resolve(),saveFailure=null,idleTimer=null,locking=false;
 function nextRecordId(){let id;do{id=crypto.getRandomValues(new Uint32Array(1))[0]}while(records.some(r=>r.id===id));return id}
 function stateSnapshot(){return JSON.stringify({people,records})}
 function authError(t){$('vaultAuthError').textContent=t}
@@ -468,16 +468,20 @@ function queueVaultSave(){
 function resetIdle(){clearTimeout(idleTimer);if(vaultUnlocked)idleTimer=setTimeout(()=>lockVault(),120000)}
 function setMode(mode){
  vaultMode=mode;$('vaultSetupFields').hidden=mode!=='setup';$('vaultRecoveryFields').hidden=mode!=='recover';
+ const env=importCandidate||vaultEnvelope,legacy=mode==='recover'&&env?.version===1;
+ /* Yeni kasada sorular kurulur; eski (kurtarma anahtarlı) kasa kurtarılırken de sorular burada belirlenir. */
+ $('vaultQuestionSetup').hidden=!(mode==='setup'||legacy);$('vaultLegacyCode').hidden=!legacy;$('vaultAnswerFields').hidden=mode!=='recover'||legacy;
+ if(mode==='recover'&&!legacy&&env?.questions){$('vaultAskQ1').textContent=env.questions.list[0];$('vaultAskQ2').textContent=env.questions.list[1]}
  $('vaultPassword').closest('label').hidden=mode==='recover';$('vaultPassword').required=mode!=='recover';
- $('vaultHeading').textContent={setup:'Yeni kasa oluştur',unlock:'Kasayı aç',recover:'Kurtarma anahtarıyla aç'}[mode];
- $('vaultSubmit').textContent={setup:'Kasayı oluştur',unlock:'Kasayı aç',recover:'Parolayı yenile'}[mode];
- $('vaultRecoverToggle').hidden=mode==='setup';$('vaultRecoverToggle').textContent=mode==='recover'?'Ana parolayla aç':'Parolamı unuttum';
+ $('vaultHeading').textContent={setup:'Yeni kasa oluştur',unlock:'Kasayı aç',recover:'Şifremi unuttum'}[mode];
+ $('vaultSubmit').textContent={setup:'Kasayı oluştur',unlock:'Kasayı aç',recover:'Şifreyi yenile'}[mode];
+ $('vaultRecoverToggle').hidden=mode==='setup';$('vaultRecoverToggle').textContent=mode==='recover'?'Şifreyle aç':'Şifremi unuttum';
  authError('');
 }
 function clearSensitiveDOM(){
  document.querySelectorAll('dialog[open]').forEach(d=>d.close());
  document.querySelectorAll('input:not([type=file]),textarea').forEach(e=>{if(e.type==='checkbox')e.checked=false;else e.value=''});
- $('cards').innerHTML='';$('historyList').innerHTML='';$('historyFor').textContent='';$('renewFor').textContent='';$('vaultKeysList').innerHTML='';$('peopleList').innerHTML='';$('people').innerHTML='';
+ $('cards').innerHTML='';$('historyList').innerHTML='';$('historyFor').textContent='';$('renewFor').textContent='';$('peopleList').innerHTML='';$('people').innerHTML='';
  visible.clear();historyShown.clear();selectedRecord=null;person='Tümü';
 }
 async function lockVault(){
@@ -493,37 +497,31 @@ function openSession(key,state){
  $('vaultGate').hidden=true;document.body.classList.remove('vault-locked');$('vaultAuth').reset();importCandidate=null;$('vaultImportCancel').hidden=true;
  render();resetIdle();navigator.storage?.persist?.().catch(()=>{});
 }
-function stageKeys(created,state){
- stagedVault={...created,state};$('vaultKeysList').innerHTML='';
- created.codes.forEach((code,i)=>{const c=document.createElement('code');c.textContent=`${i+1}. ${code}`;$('vaultKeysList').appendChild(c)});
- $('vaultKeysSaved').checked=false;$('vaultKeysContinue').disabled=true;$('vaultKeys').showModal();
+function readQA(){return [{q:$('vaultQ1').value,a:$('vaultA1').value},{q:$('vaultQ2').value,a:$('vaultA2').value}]}
+function saveNewVault(created,state){
+ try{storeEnvelope(created.envelope)}catch(e){throw Error('Kasa kaydedilemedi: '+e.message)}
+ openSession(created.key,state);
 }
-$('vaultKeys').addEventListener('cancel',e=>e.preventDefault());
-$('vaultKeysSaved').addEventListener('change',()=>{$('vaultKeysContinue').disabled=!$('vaultKeysSaved').checked});
-$('vaultKeysContinue').addEventListener('click',()=>{
- if(!stagedVault||!$('vaultKeysSaved').checked)return;
- try{storeEnvelope(stagedVault.envelope);const {key,state}=stagedVault;stagedVault.codes.fill('');stagedVault=null;$('vaultKeysList').innerHTML='';$('vaultKeys').close();openSession(key,state)}
- catch(e){authError('Kasa kaydedilemedi: '+e.message);$('vaultKeys').close();stagedVault=null;$('vaultKeysList').innerHTML=''}
-});
 $('vaultAuth').addEventListener('submit',async e=>{
  e.preventDefault();if(vaultBusy)return;vaultBusy=true;$('vaultAuth').setAttribute('aria-busy','true');$('vaultSubmit').disabled=true;authError('');
  try{
   const envelope=importCandidate||vaultEnvelope;
   if(vaultMode==='setup'){
-   const pass=$('vaultPassword').value;if(pass!==$('vaultRepeat').value)throw Error('Parolalar aynı değil.');
-   const state={people:[],records:[]};stageKeys(await VaultCore.create(pass,state),state);
+   const pass=$('vaultPassword').value;if(!/^\d{4}$/.test(pass))throw Error('Şifre 4 haneli rakam olmalı.');if(pass!==$('vaultRepeat').value)throw Error('Şifreler aynı değil.');
+   const state={people:[],records:[]};saveNewVault(await VaultCore.create(pass,state,readQA()),state);
   }else if(vaultMode==='recover'){
-   const pass=$('vaultNewPassword').value;if(pass!==$('vaultNewRepeat').value)throw Error('Yeni parolalar aynı değil.');if(pass.length<12)throw Error('Yeni ana parola en az 12 karakter olmalı.');
-   const state=await VaultCore.recover(envelope,$('vaultRecoveryCode').value);
-   stageKeys(await VaultCore.create(pass,state),state);
-   $('vaultKeyNote').textContent='Önceki üç anahtar bu kasanın yeni sürümünü açamaz. Yeni şifreli yedek al. Eski yedekler eski parola ve anahtarlarıyla açılabilir.';
+   const pass=$('vaultNewPassword').value;if(!/^\d{4}$/.test(pass))throw Error('Yeni şifre 4 haneli rakam olmalı.');if(pass!==$('vaultNewRepeat').value)throw Error('Yeni şifreler aynı değil.');
+   let state,qa;
+   if(envelope.version===1){state=await VaultCore.recover(envelope,$('vaultRecoveryCode').value);qa=readQA()}
+   else{const answers=[$('vaultR1').value,$('vaultR2').value];state=await VaultCore.recoverWithAnswers(envelope,answers);qa=envelope.questions.list.map((q,i)=>({q,a:answers[i]}))}
+   saveNewVault(await VaultCore.create(pass,state,qa),state);
   }else{
-   let session;try{session=await VaultCore.unlock(envelope,$('vaultPassword').value)}catch{throw Error('Ana parola yanlış veya kasa verisi bozulmuş.')}
+   let session;try{session=await VaultCore.unlock(envelope,$('vaultPassword').value)}catch{throw Error('Şifre yanlış veya kasa verisi bozulmuş.')}
    if(importCandidate)storeEnvelope(importCandidate);openSession(session.key,session.state);
   }
  }catch(err){authError(err.message)}finally{
   vaultBusy=false;$('vaultAuth').setAttribute('aria-busy','false');$('vaultSubmit').disabled=false;
-  $('vaultPassword').value='';$('vaultRepeat').value='';$('vaultNewPassword').value='';$('vaultNewRepeat').value='';$('vaultRecoveryCode').value='';
+  $('vaultPassword').value='';$('vaultRepeat').value='';$('vaultNewPassword').value='';$('vaultNewRepeat').value='';$('vaultRecoveryCode').value='';['vaultA1','vaultA2','vaultR1','vaultR2'].forEach(id=>$(id).value='');
  }
 });
 $('vaultRecoverToggle').addEventListener('click',()=>{setMode(vaultMode==='recover'?'unlock':'recover');$('vaultAuth').reset()});
@@ -541,12 +539,12 @@ $('vaultExport').addEventListener('click',async()=>{
 $('vaultImport').addEventListener('change',async e=>{
  const file=e.target.files[0];if(!file)return;
  try{if(file.size>8000000)throw Error('Yedek dosyası çok büyük.');if(persistedBlob&&!$('vaultReplace').checked)throw Error('Önce mevcut kasayı değiştirme kutusunu işaretle.');
-  importCandidate=VaultCore.validate(JSON.parse(await file.text()));setMode('unlock');$('vaultSubmit').disabled=false;authError('Yedek seçildi. Yedeğin ana parolasıyla aç veya kurtarma anahtarını kullan.');$('vaultImportCancel').hidden=false;
+  importCandidate=VaultCore.validate(JSON.parse(await file.text()));setMode('unlock');$('vaultSubmit').disabled=false;authError('Yedek seçildi. Yedeğin şifresiyle aç veya Şifremi unuttum ile soruları cevapla.');$('vaultImportCancel').hidden=false;
  }catch(err){authError('Yedek seçilemedi: '+err.message)}finally{e.target.value=''}
 });
 $('vaultImportCancel').addEventListener('click',()=>{importCandidate=null;$('vaultImportCancel').hidden=true;setMode(vaultEnvelope?'unlock':'setup')});
 ['pointerdown','keydown'].forEach(event=>document.addEventListener(event,resetIdle,{passive:true}));
-document.addEventListener('visibilitychange',()=>{if(document.hidden){if(stagedVault){stagedVault.codes.fill('');stagedVault=null;$('vaultKeysList').innerHTML='';$('vaultKeys').close();authError('Anahtar ekranı gizlendi. İşlemi yeniden başlat.')}lockVault()}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)lockVault()});
 window.addEventListener('pagehide',()=>{if(vaultUnlocked)lockVault()});
 window.addEventListener('storage',e=>{if(e.key===STORE&&e.newValue!==persistedBlob){location.reload()}});
 window.addEventListener('beforeunload',e=>{if(saveFailure){e.preventDefault();e.returnValue=''}});
